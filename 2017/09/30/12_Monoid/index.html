@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT, nachtflug, blog" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&amp;lt;*&amp;gt;运算直接产生笛卡儿积的情况。 12data ZipList a = ZipList [a]data ZipList a = ZipList &amp;#123;getZipList ::">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Learn You a Haskell for Great Good 读书笔记 12">
+<meta property="og:url" content="http://yoursite.com/2017/09/30/12_Monoid/index.html">
+<meta property="og:site_name" content="摸鱼日志">
+<meta property="og:description" content="MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&amp;lt;*&amp;gt;运算直接产生笛卡儿积的情况。 12data ZipList a = ZipList [a]data ZipList a = ZipList &amp;#123;getZipList ::">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-16T04:19:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Learn You a Haskell for Great Good 读书笔记 12">
+<meta name="twitter:description" content="MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&amp;lt;*&amp;gt;运算直接产生笛卡儿积的情况。 12data ZipList a = ZipList [a]data ZipList a = ZipList &amp;#123;getZipList ::">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/30/12_Monoid/"/>
+
+
+
+
+
+  <title>Learn You a Haskell for Great Good 读书笔记 12 | 摸鱼日志</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">摸鱼日志</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/30/12_Monoid/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="<a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摸鱼日志">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Learn You a Haskell for Great Good 读书笔记 12</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-30T12:10:12+08:00">
+                2017-09-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Monoids"><a href="#Monoids" class="headerlink" title="Monoids"></a>Monoids</h2><h4 id="New-Type-将一个已有类型装入一个新的类型"><a href="#New-Type-将一个已有类型装入一个新的类型" class="headerlink" title="New Type 将一个已有类型装入一个新的类型"></a>New Type 将一个已有类型装入一个新的类型</h4><p>之前我们学过一个<code>ZipList</code>，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&lt;*&gt;运算直接产生笛卡儿积的情况。</p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">ZipList</span> a = <span class="type">ZipList</span> [a]</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">ZipList</span> a = <span class="type">ZipList</span> &#123;<span class="title">getZipList</span> :: [<span class="title">a</span>]&#125;</span></span><br></pre></td></tr></table></figure>
+<p>我们还可以使用newtype这个关键字去定义<code>ZipList</code></p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">newtype</span> <span class="type">ZipList</span> a = <span class="type">ZipList</span> &#123;<span class="title">getZipList</span> :: [<span class="title">a</span>]&#125;</span></span><br></pre></td></tr></table></figure>
+<p>好处是比data在后面运行速度上更快，因为newtype告诉Haskell你定义的新类型它是从已有类型而来，不会有类型的拆装动作。但它的局限是：</p>
+<ul>
+<li>只能有一个值构造器<em>value constructor</em></li>
+<li>值构造器只能有一个类型参数</li>
+</ul>
+<p>就如ZipList的定义。</p>
+<h4 id="type-vs-newtype-vs-data"><a href="#type-vs-newtype-vs-data" class="headerlink" title="type vs. newtype vs. data"></a>type vs. newtype vs. data</h4><ul>
+<li>type 只是给已存在的类型一个重命名，好看一点</li>
+<li>newtype 是将已有类型包装成一个全新的类型，使其被实例化时能更方便</li>
+<li>data 给你组装你自己的数据结构</li>
+</ul>
+<h3 id="Monoid"><a href="#Monoid" class="headerlink" title="Monoid"></a>Monoid</h3><ul>
+<li>一个函数接受两个参数</li>
+<li>函数返回值与入参同类型</li>
+<li>存在一个值使返回值和另一个参数相同 (<code>f x = id</code>)</li>
+<li>这个函数是Associative的，就是括号不影响结果</li>
+</ul>
+<p>则这个函数以及第三点那个值组成了一个Moniod类型：</p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Class</span> <span class="type">Monoid</span> m <span class="keyword">where</span></span><br><span class="line">	mempty :: m</span><br><span class="line">	mappend :: m -&gt; m -&gt; m</span><br><span class="line">	mconcat :: [m] -&gt; m</span><br><span class="line">	mconcat = foldr mappend mempty</span><br></pre></td></tr></table></figure>
+<h4 id="Monoid定律"><a href="#Monoid定律" class="headerlink" title="Monoid定律"></a>Monoid定律</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">mempty</span> `mappend` x = x</span><br><span class="line"><span class="title">x</span> `mappend` mempty = x</span><br><span class="line">(x `mappend` y) `mappend` z = x `mappend` (y `mappend` z)</span><br></pre></td></tr></table></figure>
+<h4 id="List-作为-Monoid"><a href="#List-作为-Monoid" class="headerlink" title="List 作为 Monoid"></a>List 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> [a] <span class="keyword">where</span></span> </span><br><span class="line">	mempty = []</span><br><span class="line">	mappend = (++)</span><br></pre></td></tr></table></figure>
+<h4 id="Product-和-Sum-作为-Monoid"><a href="#Product-和-Sum-作为-Monoid" class="headerlink" title="Product 和 Sum 作为 Monoid"></a>Product 和 Sum 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">newType</span> <span class="type">Product</span> a = <span class="type">Product</span> &#123;getProduct :: a&#125;</span><br><span class="line">	<span class="keyword">deriving</span> (<span class="type">Eq</span>, <span class="type">Ord</span>, <span class="type">Read</span>, <span class="type">Show</span>, <span class="type">Bounded</span>)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Num</span> a =&gt; monoid (<span class="type">Product</span> <span class="title">a</span>) <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">Product</span> <span class="number">1</span></span><br><span class="line">	<span class="type">Product</span> x `mappend` <span class="type">Product</span> y = <span class="type">Product</span> x * y</span><br></pre></td></tr></table></figure>
+<h4 id="Any-All-作为-Monoid"><a href="#Any-All-作为-Monoid" class="headerlink" title="Any / All 作为 Monoid"></a>Any / All 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">newtype</span> <span class="type">Any</span> = <span class="type">Any</span> &#123;<span class="title">getAny</span> :: <span class="type">Bool</span>&#125;</span></span><br><span class="line">	<span class="keyword">deriving</span> (<span class="type">Eq</span>, <span class="type">Ord</span>, <span class="type">Read</span>, <span class="type">Show</span>, <span class="type">Bounded</span>)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> <span class="type">Any</span> <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">Any</span> <span class="type">False</span></span><br><span class="line">	<span class="type">Any</span> x `mappend` <span class="type">Any</span> y = <span class="type">Any</span> $ x || y</span><br></pre></td></tr></table></figure>
+<h4 id="Ordering-作为-Monoid"><a href="#Ordering-作为-Monoid" class="headerlink" title="Ordering 作为 Monoid"></a>Ordering 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> <span class="type">Ordering</span> <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">EQ</span></span><br><span class="line">	<span class="type">LT</span> `mappend` _ = <span class="type">LT</span></span><br><span class="line">	<span class="type">EQ</span> `mappend` y = y</span><br><span class="line">	<span class="type">GT</span> `mappend` _ = <span class="type">GT</span></span><br></pre></td></tr></table></figure>
+<p>想象一下一个字符串的大小比较，从头到尾一个字符一个字符的比，就能理解这个Monoid 为什么这么定义了。</p>
+<h4 id="Maybe-作为-Monoid"><a href="#Maybe-作为-Monoid" class="headerlink" title="Maybe 作为 Monoid"></a>Maybe 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> a =&gt; <span class="type">Monoid</span> (<span class="type">Maybe</span> <span class="title">a</span>) <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">Nothing</span></span><br><span class="line">	<span class="type">Nothing</span> `mappend` m = m</span><br><span class="line">	m `mappend` <span class="type">Nothing</span> = m</span><br><span class="line">	<span class="type">Just</span> m1 `append` <span class="type">Just</span> m2 = <span class="type">Just</span> (m1 `mappend` m2)</span><br></pre></td></tr></table></figure>
+<p>这就比较像Functor了，Maybe给一种Monoid包了一层，但本身也可以作为Monoid 使用。</p>
+<p>如果Maybe的类型参数不是一个Monoid？</p>
+<p>因为不是Monoid所以不能叠加，这样就衍生出First 和 Last 两个Monoid</p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">newtype</span> <span class="type">First</span> a = <span class="type">First</span> &#123; <span class="title">getFirst</span> :: <span class="type">Maybe</span> <span class="title">a</span>&#125;</span></span><br><span class="line">	<span class="keyword">deriving</span> (<span class="type">Eq</span>, <span class="type">Ord</span>, <span class="type">Read</span>, show)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> (<span class="type">First</span> <span class="title">a</span>) <span class="keyword">where</span></span> </span><br><span class="line">	mempty = <span class="type">First</span> <span class="type">Nothing</span></span><br><span class="line">	<span class="type">First</span> (<span class="type">Just</span> x) `mappend` _ = <span class="type">Fisrt</span> <span class="type">Just</span> x</span><br><span class="line">	<span class="type">First</span> <span class="type">Nothing</span> `mappend` x = x</span><br></pre></td></tr></table></figure>
+<p>第一次出现的值会一直覆盖后面的值，使得monoid三个定律成立</p>
+<p>Last 定义类似。</p>
+<h3 id="Monoids-与-Foldable"><a href="#Monoids-与-Foldable" class="headerlink" title="Monoids 与 Foldable"></a>Monoids 与 Foldable</h3><p>就像我们用Functor 之于了可以被map的数据结构，Monoids的Foldable(最基本的就是[]，也可以是自己定义的Tree等)是可以被fold的数据结构</p>
+<p>我们在第七节定义了一个Foldable的数据类型Tree：</p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Tree</span> a = <span class="type">EmptyTree</span> | <span class="type">Node</span> a (<span class="type">Tree</span> <span class="title">a</span>) (<span class="type">Tree</span> <span class="title">a</span>) <span class="keyword">deriving</span> (<span class="title">show</span>)</span></span><br><span class="line"><span class="title">foldMap</span> :: (<span class="type">Monoid</span> m, <span class="type">Foldable</span> t) =&gt; (a -&gt; m) -&gt; t a -&gt; m</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Foldable</span>.<span class="type">Foldable</span> <span class="type">Tree</span> <span class="keyword">where</span></span></span><br><span class="line">	foldMap f <span class="type">EmptyTree</span> = mempty</span><br><span class="line">	foldMap f (<span class="type">Nod</span> x l r) = <span class="type">Foldable</span>.foldMap f l `mappend`</span><br><span class="line">							f x					 `mappend`</span><br><span class="line">							<span class="type">Foldable</span>.foldMap f r</span><br></pre></td></tr></table></figure>
+<p>这里就用到Monoid结合方法来实现Foldable，大体就是这样。Monoid的数据结构都可以定义实现一个Foldable的fold。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    <a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://yoursite.com/2017/09/30/12_Monoid/" title="Learn You a Haskell for Great Good 读书笔记 12">http://yoursite.com/2017/09/30/12_Monoid/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/27/11_applicative functors/" rel="next" title="Learn You a Haskell for Great Good 读书笔记 11">
+                <i class="fa fa-chevron-left"></i> Learn You a Haskell for Great Good 读书笔记 11
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/12/13_Monads/" rel="prev" title="Learn You a Haskell for Great Good 读书笔记 13">
+                Learn You a Haskell for Great Good 读书笔记 13 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="<a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>" />
+          <p class="site-author-name" itemprop="name"><a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Monoids"><span class="nav-number">1.</span> <span class="nav-text">Monoids</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#New-Type-将一个已有类型装入一个新的类型"><span class="nav-number">1.0.1.</span> <span class="nav-text">New Type 将一个已有类型装入一个新的类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#type-vs-newtype-vs-data"><span class="nav-number">1.0.2.</span> <span class="nav-text">type vs. newtype vs. data</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Monoid"><span class="nav-number">1.1.</span> <span class="nav-text">Monoid</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Monoid定律"><span class="nav-number">1.1.1.</span> <span class="nav-text">Monoid定律</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#List-作为-Monoid"><span class="nav-number">1.1.2.</span> <span class="nav-text">List 作为 Monoid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Product-和-Sum-作为-Monoid"><span class="nav-number">1.1.3.</span> <span class="nav-text">Product 和 Sum 作为 Monoid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Any-All-作为-Monoid"><span class="nav-number">1.1.4.</span> <span class="nav-text">Any / All 作为 Monoid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ordering-作为-Monoid"><span class="nav-number">1.1.5.</span> <span class="nav-text">Ordering 作为 Monoid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Maybe-作为-Monoid"><span class="nav-number">1.1.6.</span> <span class="nav-text">Maybe 作为 Monoid</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Monoids-与-Foldable"><span class="nav-number">1.2.</span> <span class="nav-text">Monoids 与 Foldable</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"><a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a></span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
