@@ -304,5 +304,6 @@ $(document).ready(function () {
       integrator.next();
     }
   };
-
+  $('.powered-by').remove();
+  $('.theme-info').remove();
 });

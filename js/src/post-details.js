@@ -145,7 +145,4 @@ $(document).ready(function () {
           NexT.utils.displaySidebar();
       }) : NexT.utils.displaySidebar();
   }
-  $('.powered-by').remove();
-  $('.theme-info').remove();
-  $('span.author a#upName').after("<span style='padding-left:10px'>|</span><a style='margin-left:10px;border-bottom:0px' href='https://www.codewars.com/users/Nachtflug'><img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/></a>");
 });

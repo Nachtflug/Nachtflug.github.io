@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT, nachtflug, blog" />
+  <meta name="keywords" content="haskell,functional programming," />
 
 
 
@@ -95,13 +95,14 @@
 
 
 <meta name="description" content="MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&amp;lt;*&amp;gt;运算直接产生笛卡儿积的情况。 12data ZipList a = ZipList [a]data ZipList a = ZipList &amp;#123;getZipList ::">
+<meta name="keywords" content="haskell,functional programming">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Learn You a Haskell for Great Good 读书笔记 12">
 <meta property="og:url" content="http://yoursite.com/2017/09/30/12_Monoid/index.html">
 <meta property="og:site_name" content="摸鱼日志">
 <meta property="og:description" content="MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&amp;lt;*&amp;gt;运算直接产生笛卡儿积的情况。 12data ZipList a = ZipList [a]data ZipList a = ZipList &amp;#123;getZipList ::">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-10-16T04:19:32.000Z">
+<meta property="og:updated_time" content="2018-03-09T02:17:09.617Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Learn You a Haskell for Great Good 读书笔记 12">
 <meta name="twitter:description" content="MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&amp;lt;*&amp;gt;运算直接产生笛卡儿积的情况。 12data ZipList a = ZipList [a]data ZipList a = ZipList &amp;#123;getZipList ::">
@@ -150,6 +151,12 @@
 
 
 
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1273070403&web_id=1273070403" language="JavaScript"></script>
+  </div>
 
 
 
@@ -210,22 +217,22 @@
         </li>
       
         
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
-            
-            归档
-          </a>
-        </li>
-      
-        
         <li class="menu-item menu-item-tags">
           <a href="/tags/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
             
             标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
           </a>
         </li>
       
@@ -381,26 +388,16 @@
     
 
     
-      <div>
-        <ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者：</strong>
-    <a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="http://yoursite.com/2017/09/30/12_Monoid/" title="Learn You a Haskell for Great Good 读书笔记 12">http://yoursite.com/2017/09/30/12_Monoid/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>
-    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-
-      </div>
-    
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/haskell/" rel="tag"># haskell</a>
+          
+            <a href="/tags/functional-programming/" rel="tag"># functional programming</a>
+          
+        </div>
       
 
       
@@ -509,6 +506,15 @@
           
 
           
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
 
         </nav>
 
@@ -516,12 +522,37 @@
 
         <div class="links-of-author motion-element">
           
+            
+              <span class="links-of-author-item">
+                <a href="https://www.codewars.com/users/Nachtflug" target="_blank" title="<img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>">
+                  
+                    
+                      <img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>
+                    
+                </a>
+              </span>
+            
+          
         </div>
 
         
         
 
         
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情(qian)链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.51cloud.win" title="Hill's Notes" target="_blank">Hill's Notes</a>
+                </li>
+              
+            </ul>
+          </div>
         
 
         
@@ -706,6 +737,21 @@
   
 
   
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
 
   
 

@@ -149,6 +149,12 @@
 
 
 
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1273070403&web_id=1273070403" language="JavaScript"></script>
+  </div>
+
+
+
 
 
 </head>
@@ -208,22 +214,22 @@
         </li>
       
         
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
-            
-            归档
-          </a>
-        </li>
-      
-        
         <li class="menu-item menu-item-tags">
           <a href="/tags/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
             
             标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
           </a>
         </li>
       
@@ -331,33 +337,16 @@
       
         
           
-            <h2 id="More-Monad"><a href="#More-Monad" class="headerlink" title="More Monad"></a>More Monad</h2><h4 id="Writer"><a href="#Writer" class="headerlink" title="Writer"></a>Writer</h4><p>我们想在程序运行的时候打log怎么办? 用<code>(a, String)</code>去记录结果，那如何把一连串的log连起来而不是只保留一步的log呢? 用Monad， 然后用<code>++</code>把String连起来:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">applyLog</span> :: (a, <span class="type">String</span>) -&gt; (a -&gt; (b, <span class="type">String</span>)) -&gt; (b, <span class="type">String</span>)</span><br><span class="line"><span class="title">applyLog</span> (x, log) f = <span class="keyword">let</span> (y, newLog) = f x <span class="keyword">in</span> (y, log ++ newLog)</span><br></pre></td></tr></table></figure>
-<p>这里对<code>String</code>可以作进一步的抽象。<code>String</code>其实就是<code>[Char]</code>，而<code>(++)</code>对应是Monoid里的<code>mappend</code>，那<code>String</code>可以抽象成Monoid，即任何可以foldable的类型。</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">applyLog</span> :: (<span class="type">Monoid</span> m) =&gt; (a, m) -&gt; (a -&gt; (b, m)) -&gt; (b, m)</span><br><span class="line"><span class="title">applyLog</span> (x, log) f = <span class="keyword">let</span> (y, newLog) = f x <span class="keyword">in</span> (y, log `mappend` newLog)</span><br></pre></td></tr></table></figure>
-<p>当我们做了这一层的抽象后，显然log就不能代表这个monad的全部功能了，因为monoid可不止List, 还有Sum等，于是我们有了Writer:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">newType</span> <span class="type">Writer</span> w a = <span class="type">Writer</span> &#123; runWriter :: (a, w) &#125;</span><br><span class="line"><span class="class"><span class="keyword">instance</span> (<span class="type">Monoid</span> <span class="title">m</span>) =&gt; <span class="type">Monad</span> (<span class="type">Writer</span> <span class="title">w</span>) <span class="keyword">where</span></span></span><br><span class="line">	return x = <span class="type">Writer</span> (x, mempty)</span><br><span class="line">	(<span class="type">Writer</span> (x, v)) &gt;&gt;= f = <span class="keyword">let</span> (<span class="type">Writer</span> (y, v')) = f x <span class="keyword">in</span> <span class="type">Writer</span> (y, v `mappend` v')</span><br></pre></td></tr></table></figure>
-<p>注意由上推出的<code>&gt;&gt;</code>变得有意思了，monad包含的值会取运算符后面的monad的值，而monad中tuple包含的monoid则是经过mappend组合在了一起：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="type">Writer</span> (x, v)) &gt;&gt; (<span class="type">Writer</span> (y, v')) = <span class="type">Writer</span> (x, v) &gt;&gt;= \n -&gt; <span class="type">Writer</span> (y, v')</span><br><span class="line">                                    = <span class="keyword">let</span> <span class="type">Writer</span> (y, v') <span class="keyword">in</span> <span class="type">Writer</span> (y, v `mappend` v')</span><br><span class="line">                                    = <span class="type">Writer</span> (y, v `mappend` v')</span><br></pre></td></tr></table></figure>
-<p>?? tell函数，还没搞明白。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; tell :: Writer w m =&gt; w -&gt; m ()</span><br><span class="line">&gt; tell [&quot;mother fucker&quot;] &gt;&gt; logNum 3</span><br><span class="line">&gt; WriterT (Identity (3,[&quot;mother fucker&quot;,&quot;Got: 3&quot;]))</span><br><span class="line">&gt; logNum 3 &gt;&gt; tell [&quot;mother fucker&quot;]</span><br><span class="line">&gt; WriterT (Identity ((),[&quot;Got: 3&quot;,&quot;mother fucker&quot;]))</span><br><span class="line">&gt; :t tell [&quot;mother fucker&quot;]</span><br><span class="line">&gt; tell [&quot;mother fucker&quot;] :: MonadWriter [[Char]] m =&gt; m ()</span><br></pre></td></tr></table></figure>
-<p>接下来，变魔术:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">multWithLog</span> :: <span class="type">Writer</span> [<span class="type">String</span>] <span class="type">Int</span></span><br><span class="line"><span class="title">multWithLog</span> = <span class="keyword">do</span></span><br><span class="line">	x &lt;- logNum <span class="number">3</span></span><br><span class="line">	y &lt;- logNum <span class="number">5</span></span><br><span class="line">	tell [<span class="string">"Gonna mul them"</span>]</span><br><span class="line">	return $ x*y</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; runWriter multWithLog</span><br><span class="line">(15,[&quot;Got number: 3&quot;,&quot;Got number: 5&quot;,&quot;Gonna mul them&quot;])</span><br></pre></td></tr></table></figure>
-<p>上面表达式用<code>&gt;&gt;=</code>显式来写:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">multWithLog</span> = logNum <span class="number">3</span> &gt;&gt;= \x -&gt; logNum <span class="number">5</span> &gt;&gt;= \y -&gt; tell [<span class="string">"Gonna mul them"</span>] &gt;&gt; return $ x*y</span><br></pre></td></tr></table></figure>
-<p>可以看到，你好像没有做任何组装log的动作，表达式里也没有任何痕迹，但最后log就带出来了。关键在Writer<code>&gt;&gt;=</code>的定义。</p>
-<h4 id="给程序打log"><a href="#给程序打log" class="headerlink" title="给程序打log"></a>给程序打log</h4><p>有了Writer就可以给你的函数打log了，比如:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Control.Monad.Writer</span><br><span class="line"><span class="title">gcd'</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">Writer</span> [<span class="type">String</span>] <span class="type">Int</span></span><br><span class="line"><span class="title">gcd'</span> a b </span><br><span class="line">	| b == <span class="number">0</span> = <span class="keyword">do</span></span><br><span class="line">		tell [<span class="string">"Finish with "</span> ++ show a]</span><br><span class="line">		return a </span><br><span class="line">	| otherwise = <span class="keyword">do</span></span><br><span class="line">		<span class="keyword">let</span> moded = (a `mod` b)</span><br><span class="line">		tell [show a ++ <span class="string">" mod "</span> ++ show b ++ <span class="string">" = "</span> ++ show moded]</span><br><span class="line">		gcd' b moded</span><br></pre></td></tr></table></figure>
-<p>运行:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; fst $ runWriter $ gcd' <span class="number">8</span> <span class="number">3</span></span><br><span class="line">&gt; <span class="number">1</span></span><br><span class="line">&gt; mapM_ putStrLn . snd . runWriter $ gcd' <span class="number">8</span> <span class="number">3</span></span><br><span class="line">&gt; <span class="number">8</span> mod <span class="number">3</span> = <span class="number">2</span></span><br><span class="line">&gt; <span class="number">3</span> mod <span class="number">2</span> = <span class="number">1</span></span><br><span class="line">&gt; <span class="number">2</span> mod <span class="number">1</span> = <span class="number">0</span></span><br><span class="line">&gt; <span class="type">Finish</span> with <span class="number">1</span></span><br></pre></td></tr></table></figure>
-<p>只要把返回类型包一层Writer, 程序内换成do代码块或者<code>&gt;&gt;=</code>就行了。</p>
-<h4 id="函数作为Monad"><a href="#函数作为Monad" class="headerlink" title="函数作为Monad"></a>函数作为Monad</h4><p>老套路，慢慢推</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">(-&gt;) r a -&gt; (a -&gt; (-&gt;) r b) -&gt; (-&gt;) r b</span><br><span class="line">(r -&gt; a) -&gt; (a -&gt; r -&gt; b) -&gt; (r -&gt; b)</span><br><span class="line"><span class="title">w</span> = r</span><br><span class="line"><span class="title">h</span> = r -&gt; a</span><br><span class="line"><span class="title">f</span> = a -&gt; r -&gt; b</span><br><span class="line"><span class="title">h</span> &gt;&gt;= f = (r -&gt; b)</span><br><span class="line">	    = \w -&gt; b</span><br><span class="line">	    = \w -&gt; (a -&gt; r -&gt; b) a r</span><br><span class="line">	    = \w -&gt; f a w</span><br><span class="line">	    = \w -&gt; f (h w) w</span><br></pre></td></tr></table></figure>
-<p>另一个<code>return</code>比较简单，就不推了。</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monad</span> ((-&gt;) r) <span class="keyword">where</span></span></span><br><span class="line">	return x = \_ -&gt; x</span><br><span class="line">	h &gt;&gt;= f = \w -&gt; f (h w) w</span><br></pre></td></tr></table></figure>
-<h4 id="带状态的计算过程"><a href="#带状态的计算过程" class="headerlink" title="带状态的计算过程"></a>带状态的计算过程</h4>
-          
+          More MonadWriter我们想在程序运行的时候打log怎么办? 用(a, String)去记录结果，那如何把一连串的log连起来而不是只保留一步的log呢? 用Monad， 然后用++把String连起来:
+12applyLog :: (a, String) -&gt; (a -&gt; (b, String)) -&gt; (b, String)applyLog (x, log) f =
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/10/16/14_Monads_more/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -475,47 +464,21 @@
       
         
           
-            <h2 id="Monads"><a href="#Monads" class="headerlink" title="Monads"></a>Monads</h2><p><strong>Functor —&gt; Applicative —&gt; Monad</strong> </p>
-<p>直接上公式：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(&gt;&gt;=) :: (<span class="type">Monad</span> m) =&gt; m a -&gt; (a -&gt; m b) -&gt; m b</span><br></pre></td></tr></table></figure>
-<p>这个函数叫<em>bind</em>。</p>
-<p>它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。</p>
-<p>举个Maybe的例子</p>
-<h4 id="Maybe-as-Monads"><a href="#Maybe-as-Monads" class="headerlink" title="Maybe as Monads"></a>Maybe as Monads</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">applyMaybe</span> :: <span class="type">Maybe</span> a -&gt; (a -&gt; <span class="type">Maybe</span> b) -&gt; <span class="type">Maybe</span> b</span><br><span class="line"><span class="title">applyMabye</span> <span class="type">Nothing</span> f = <span class="type">Nothing</span></span><br><span class="line"><span class="title">applyMaybe</span> (<span class="type">Just</span> x) f = f x</span><br></pre></td></tr></table></figure>
-<h4 id="Monads-类型类"><a href="#Monads-类型类" class="headerlink" title="Monads 类型类"></a>Monads 类型类</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="type">Monad</span> m <span class="keyword">where</span></span></span><br><span class="line">	return :: a -&gt; m a</span><br><span class="line">	(&gt;&gt;=) :: m a -&gt; (a -&gt; m b) -&gt; m b</span><br><span class="line">	(&gt;&gt;) :: m a -&gt; m b -&gt; m b</span><br><span class="line">	x &gt;&gt; y = x &gt;&gt;= \_ -&gt; y</span><br><span class="line">	</span><br><span class="line">	fail :: <span class="type">String</span> -&gt; m a</span><br><span class="line">	fail msg = error msg</span><br></pre></td></tr></table></figure>
-<p>理论上Monad应该继承Applicative类型对吧，然后并没有。因为Monad被想出来的时候Applicative还没出现。</p>
-<p>return 和 Applicative里的pure差不多，都是把类型包一下</p>
-<p>其他精华就在那个<em>bind</em>函数</p>
-<p>再看看Maybe的Monad实际定义：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monad</span> <span class="type">Maybe</span> <span class="keyword">where</span></span></span><br><span class="line">	 return x = <span class="type">Just</span> x</span><br><span class="line">	 <span class="type">Nothing</span> &gt;&gt;= f = <span class="type">Nothing</span></span><br><span class="line">	 <span class="type">Just</span> x &gt;&gt;= f = f x</span><br><span class="line">	 fail _ = <span class="type">Nothing</span></span><br></pre></td></tr></table></figure>
-<h3 id="do"><a href="#do" class="headerlink" title="do"></a>do</h3><p>do 代码块下不仅可以把IO Action操作的数拿出来耍，它本质上是对Monad chain的语法简化:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Just</span> <span class="number">3</span> &gt;&gt;= (\x -&gt; <span class="type">Just</span> <span class="string">"!"</span> &gt;&gt;= (\y -&gt; <span class="type">Just</span> $ show x ++ y))</span><br><span class="line">等价于</span><br><span class="line"><span class="title">let</span> x = <span class="number">3</span>, y = <span class="string">"1"</span> <span class="keyword">in</span> show x ++ y</span><br><span class="line">等价于</span><br><span class="line"><span class="title">foo</span> = <span class="keyword">do</span></span><br><span class="line">	x &lt;- <span class="type">Just</span> <span class="number">3</span></span><br><span class="line">	y &lt;- <span class="type">Just</span> <span class="string">"!"</span></span><br><span class="line">	return $ show x ++ y</span><br></pre></td></tr></table></figure>
-<p>do 代码块看上去像命令式的代码，其实是Monad函数链！</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">dead</span> :: <span class="type">Maybe</span> <span class="type">String</span></span><br><span class="line"><span class="title">dead</span> = <span class="keyword">do</span></span><br><span class="line">    start &lt;- <span class="type">Just</span> <span class="string">"begin"</span></span><br><span class="line">    first &lt;- <span class="type">Just</span> $ start ++ <span class="string">" first"</span></span><br><span class="line">    <span class="type">Nothing</span></span><br><span class="line">    second &lt;- <span class="type">Just</span> $ first ++ <span class="string">" second"</span></span><br><span class="line">    return second</span><br></pre></td></tr></table></figure>
-<p>上面的dead最后等于Nothing。单行一个Monad值，相当于在链中加入<code>&gt;&gt; theMonad</code></p>
-<p>所以等价于：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="type">Just</span> <span class="string">"begin"</span> &gt;&gt;= \x -&gt; <span class="type">Just</span> (x ++ <span class="string">" first"</span>) &gt;&gt; <span class="type">Nothing</span> &gt;&gt;= \x -&gt; <span class="type">Just</span> $ x ++ <span class="string">" second"</span></span><br><span class="line">&gt; <span class="type">Nothing</span></span><br></pre></td></tr></table></figure>
-<h4 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h4><p>monad 链里模板匹配抛异常了，monad就把 fail msg 的结果作为这一环的结果，继续下去。可以看到Maybe就直接返回Nothing，那么这个链最后的值只能是Nothing了。</p>
-<h4 id="List-as-Monad"><a href="#List-as-Monad" class="headerlink" title="List as Monad"></a>List as Monad</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monad</span> [] <span class="keyword">where</span></span> </span><br><span class="line">	return x = [x] </span><br><span class="line">	xs &gt;&gt;= f = concat (map f xs) </span><br><span class="line">	fail _ = []</span><br></pre></td></tr></table></figure>
-<p>可以看到 <code>&gt;&gt;=</code>它 concat了一下，因为 <code>&gt;&gt;=</code>的第二个参数 <code>a -&gt; m b</code>会把数组里一个元素又包成一个List，所以直接concat每个元素产生的list，感觉这就是flatMap的原型。</p>
-<p>记不记得List comprehension里面也出现过<code>&lt;-</code>这个符号，其实通过Monad和do就通了：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[(n, ch) | n &lt;- [<span class="number">1</span>, <span class="number">2</span>], ch &lt;- ['a', 'b']]</span><br><span class="line"><span class="comment">--等价于</span></span><br><span class="line"><span class="title">listOfTuples</span> = <span class="keyword">do</span></span><br><span class="line">	n &lt;- [<span class="number">1</span>, <span class="number">2</span>]</span><br><span class="line">	ch &lt;- ['a', 'b']</span><br><span class="line">	return (n, ch)</span><br><span class="line"><span class="comment">--等价于</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>] &gt;&gt;= \n -&gt; ['a', 'b'] &gt;&gt;= \ch -&gt; return (n, ch)</span><br></pre></td></tr></table></figure>
-<p>List comprehension里还有一个filter:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; [x | x &lt;- [<span class="number">1.</span><span class="number">.50</span>], '<span class="number">7</span>' `elem` show x]</span><br><span class="line">&gt; [<span class="number">7</span>,<span class="number">17</span>,<span class="number">27</span>,<span class="number">37</span>,<span class="number">47</span>]</span><br></pre></td></tr></table></figure>
-<p>它用Monad的函数要怎么表示呢，原有的就不够了，需要混合Monad和Moniod。新的类型类叫MonadPlus:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="type">Monad</span> m =&gt; <span class="type">MonadPlus</span> m <span class="keyword">where</span></span></span><br><span class="line">	mzero :: m a</span><br><span class="line">	mplus :: m a -&gt; m a -&gt; m a</span><br><span class="line">	</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">MonadPlus</span> [] <span class="keyword">where</span></span></span><br><span class="line">	mzero = []</span><br><span class="line">	mplus = (++)</span><br></pre></td></tr></table></figure>
-<p>然后我们定义一个guard函数:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">guard</span> :: (<span class="type">MonadPlus</span> m) =&gt; bool -&gt; m ()</span><br><span class="line"><span class="title">guard</span> <span class="type">True</span> = return ()</span><br><span class="line"><span class="title">guard</span> <span class="type">False</span> = mzero</span><br></pre></td></tr></table></figure>
-<p>然后就通了:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; [<span class="number">1.</span><span class="number">.50</span>] &gt;&gt;= (\x -&gt; gurad ('<span class="number">7</span>' `elem` show x) &gt;&gt; return x)</span><br></pre></td></tr></table></figure>
-<p>gurad True的时候返回<code>[()]</code>，空Tuple可以代表任一类型，所以遇到 <code>&gt;&gt;</code>时直接返回函数后的值，即<code>[x]</code>被保留下来；guard False 时返回<code>[]</code>，类似fail msg的值，<code>[]</code> 在List concat时被忽略。</p>
-<h4 id="Monad-定律"><a href="#Monad-定律" class="headerlink" title="Monad 定律"></a>Monad 定律</h4><ol>
-<li>left identify:  <code>return x &gt;&gt;= f</code> 等价于 <code>return $ f x</code></li>
-<li>right identify:  <code>m x &gt;&gt;= retrun</code> 等于 <code>m x</code></li>
-<li>Associativity:  <code>(m &gt;&gt;= f) &gt;&gt;= g</code> 等价于 <code>m &gt;&gt;= \x -&gt; f x &gt;&gt;= g</code></li>
-</ol>
-
-          
+          MonadsFunctor —&gt; Applicative —&gt; Monad 
+直接上公式：
+1(&gt;&gt;=) :: (Monad m) =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+这个函数叫bind。
+它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。
+举个Maybe的例子
+Maybe as Mona
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/10/12/13_Monads/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -633,48 +596,16 @@
       
         
           
-            <h2 id="Monoids"><a href="#Monoids" class="headerlink" title="Monoids"></a>Monoids</h2><h4 id="New-Type-将一个已有类型装入一个新的类型"><a href="#New-Type-将一个已有类型装入一个新的类型" class="headerlink" title="New Type 将一个已有类型装入一个新的类型"></a>New Type 将一个已有类型装入一个新的类型</h4><p>之前我们学过一个<code>ZipList</code>，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&lt;*&gt;运算直接产生笛卡儿积的情况。</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">ZipList</span> a = <span class="type">ZipList</span> [a]</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">ZipList</span> a = <span class="type">ZipList</span> &#123;<span class="title">getZipList</span> :: [<span class="title">a</span>]&#125;</span></span><br></pre></td></tr></table></figure>
-<p>我们还可以使用newtype这个关键字去定义<code>ZipList</code></p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">newtype</span> <span class="type">ZipList</span> a = <span class="type">ZipList</span> &#123;<span class="title">getZipList</span> :: [<span class="title">a</span>]&#125;</span></span><br></pre></td></tr></table></figure>
-<p>好处是比data在后面运行速度上更快，因为newtype告诉Haskell你定义的新类型它是从已有类型而来，不会有类型的拆装动作。但它的局限是：</p>
-<ul>
-<li>只能有一个值构造器<em>value constructor</em></li>
-<li>值构造器只能有一个类型参数</li>
-</ul>
-<p>就如ZipList的定义。</p>
-<h4 id="type-vs-newtype-vs-data"><a href="#type-vs-newtype-vs-data" class="headerlink" title="type vs. newtype vs. data"></a>type vs. newtype vs. data</h4><ul>
-<li>type 只是给已存在的类型一个重命名，好看一点</li>
-<li>newtype 是将已有类型包装成一个全新的类型，使其被实例化时能更方便</li>
-<li>data 给你组装你自己的数据结构</li>
-</ul>
-<h3 id="Monoid"><a href="#Monoid" class="headerlink" title="Monoid"></a>Monoid</h3><ul>
-<li>一个函数接受两个参数</li>
-<li>函数返回值与入参同类型</li>
-<li>存在一个值使返回值和另一个参数相同 (<code>f x = id</code>)</li>
-<li>这个函数是Associative的，就是括号不影响结果</li>
-</ul>
-<p>则这个函数以及第三点那个值组成了一个Moniod类型：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Class</span> <span class="type">Monoid</span> m <span class="keyword">where</span></span><br><span class="line">	mempty :: m</span><br><span class="line">	mappend :: m -&gt; m -&gt; m</span><br><span class="line">	mconcat :: [m] -&gt; m</span><br><span class="line">	mconcat = foldr mappend mempty</span><br></pre></td></tr></table></figure>
-<h4 id="Monoid定律"><a href="#Monoid定律" class="headerlink" title="Monoid定律"></a>Monoid定律</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">mempty</span> `mappend` x = x</span><br><span class="line"><span class="title">x</span> `mappend` mempty = x</span><br><span class="line">(x `mappend` y) `mappend` z = x `mappend` (y `mappend` z)</span><br></pre></td></tr></table></figure>
-<h4 id="List-作为-Monoid"><a href="#List-作为-Monoid" class="headerlink" title="List 作为 Monoid"></a>List 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> [a] <span class="keyword">where</span></span> </span><br><span class="line">	mempty = []</span><br><span class="line">	mappend = (++)</span><br></pre></td></tr></table></figure>
-<h4 id="Product-和-Sum-作为-Monoid"><a href="#Product-和-Sum-作为-Monoid" class="headerlink" title="Product 和 Sum 作为 Monoid"></a>Product 和 Sum 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">newType</span> <span class="type">Product</span> a = <span class="type">Product</span> &#123;getProduct :: a&#125;</span><br><span class="line">	<span class="keyword">deriving</span> (<span class="type">Eq</span>, <span class="type">Ord</span>, <span class="type">Read</span>, <span class="type">Show</span>, <span class="type">Bounded</span>)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Num</span> a =&gt; monoid (<span class="type">Product</span> <span class="title">a</span>) <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">Product</span> <span class="number">1</span></span><br><span class="line">	<span class="type">Product</span> x `mappend` <span class="type">Product</span> y = <span class="type">Product</span> x * y</span><br></pre></td></tr></table></figure>
-<h4 id="Any-All-作为-Monoid"><a href="#Any-All-作为-Monoid" class="headerlink" title="Any / All 作为 Monoid"></a>Any / All 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">newtype</span> <span class="type">Any</span> = <span class="type">Any</span> &#123;<span class="title">getAny</span> :: <span class="type">Bool</span>&#125;</span></span><br><span class="line">	<span class="keyword">deriving</span> (<span class="type">Eq</span>, <span class="type">Ord</span>, <span class="type">Read</span>, <span class="type">Show</span>, <span class="type">Bounded</span>)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> <span class="type">Any</span> <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">Any</span> <span class="type">False</span></span><br><span class="line">	<span class="type">Any</span> x `mappend` <span class="type">Any</span> y = <span class="type">Any</span> $ x || y</span><br></pre></td></tr></table></figure>
-<h4 id="Ordering-作为-Monoid"><a href="#Ordering-作为-Monoid" class="headerlink" title="Ordering 作为 Monoid"></a>Ordering 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> <span class="type">Ordering</span> <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">EQ</span></span><br><span class="line">	<span class="type">LT</span> `mappend` _ = <span class="type">LT</span></span><br><span class="line">	<span class="type">EQ</span> `mappend` y = y</span><br><span class="line">	<span class="type">GT</span> `mappend` _ = <span class="type">GT</span></span><br></pre></td></tr></table></figure>
-<p>想象一下一个字符串的大小比较，从头到尾一个字符一个字符的比，就能理解这个Monoid 为什么这么定义了。</p>
-<h4 id="Maybe-作为-Monoid"><a href="#Maybe-作为-Monoid" class="headerlink" title="Maybe 作为 Monoid"></a>Maybe 作为 Monoid</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> a =&gt; <span class="type">Monoid</span> (<span class="type">Maybe</span> <span class="title">a</span>) <span class="keyword">where</span></span></span><br><span class="line">	mempty = <span class="type">Nothing</span></span><br><span class="line">	<span class="type">Nothing</span> `mappend` m = m</span><br><span class="line">	m `mappend` <span class="type">Nothing</span> = m</span><br><span class="line">	<span class="type">Just</span> m1 `append` <span class="type">Just</span> m2 = <span class="type">Just</span> (m1 `mappend` m2)</span><br></pre></td></tr></table></figure>
-<p>这就比较像Functor了，Maybe给一种Monoid包了一层，但本身也可以作为Monoid 使用。</p>
-<p>如果Maybe的类型参数不是一个Monoid？</p>
-<p>因为不是Monoid所以不能叠加，这样就衍生出First 和 Last 两个Monoid</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">newtype</span> <span class="type">First</span> a = <span class="type">First</span> &#123; <span class="title">getFirst</span> :: <span class="type">Maybe</span> <span class="title">a</span>&#125;</span></span><br><span class="line">	<span class="keyword">deriving</span> (<span class="type">Eq</span>, <span class="type">Ord</span>, <span class="type">Read</span>, show)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Monoid</span> (<span class="type">First</span> <span class="title">a</span>) <span class="keyword">where</span></span> </span><br><span class="line">	mempty = <span class="type">First</span> <span class="type">Nothing</span></span><br><span class="line">	<span class="type">First</span> (<span class="type">Just</span> x) `mappend` _ = <span class="type">Fisrt</span> <span class="type">Just</span> x</span><br><span class="line">	<span class="type">First</span> <span class="type">Nothing</span> `mappend` x = x</span><br></pre></td></tr></table></figure>
-<p>第一次出现的值会一直覆盖后面的值，使得monoid三个定律成立</p>
-<p>Last 定义类似。</p>
-<h3 id="Monoids-与-Foldable"><a href="#Monoids-与-Foldable" class="headerlink" title="Monoids 与 Foldable"></a>Monoids 与 Foldable</h3><p>就像我们用Functor 之于了可以被map的数据结构，Monoids的Foldable(最基本的就是[]，也可以是自己定义的Tree等)是可以被fold的数据结构</p>
-<p>我们在第七节定义了一个Foldable的数据类型Tree：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Tree</span> a = <span class="type">EmptyTree</span> | <span class="type">Node</span> a (<span class="type">Tree</span> <span class="title">a</span>) (<span class="type">Tree</span> <span class="title">a</span>) <span class="keyword">deriving</span> (<span class="title">show</span>)</span></span><br><span class="line"><span class="title">foldMap</span> :: (<span class="type">Monoid</span> m, <span class="type">Foldable</span> t) =&gt; (a -&gt; m) -&gt; t a -&gt; m</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Foldable</span>.<span class="type">Foldable</span> <span class="type">Tree</span> <span class="keyword">where</span></span></span><br><span class="line">	foldMap f <span class="type">EmptyTree</span> = mempty</span><br><span class="line">	foldMap f (<span class="type">Nod</span> x l r) = <span class="type">Foldable</span>.foldMap f l `mappend`</span><br><span class="line">							f x					 `mappend`</span><br><span class="line">							<span class="type">Foldable</span>.foldMap f r</span><br></pre></td></tr></table></figure>
-<p>这里就用到Monoid结合方法来实现Foldable，大体就是这样。Monoid的数据结构都可以定义实现一个Foldable的fold。</p>
-
-          
+          MonoidsNew Type 将一个已有类型装入一个新的类型之前我们学过一个ZipList，它可以把一个List的运算按序号应用到另一个List的值上，从而避免List 作为Applicative 的&lt;*&gt;运算直接产生笛卡儿积的情况。
+12data ZipList a = ZipList [a]data ZipList a = ZipList &#123;getZipList :: 
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/30/12_Monoid/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -792,48 +723,18 @@
       
         
           
-            <h2 id="11-函子以及Applicative"><a href="#11-函子以及Applicative" class="headerlink" title="11 函子以及Applicative"></a>11 函子以及Applicative</h2><h4 id="函子"><a href="#函子" class="headerlink" title="函子"></a>函子</h4><p>函子是那些可以被map的类型，比如List, Maybe, Tree等。它们共有一个函数</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">fmap</span> :: (a -&gt; b) -&gt; f a -&gt; f b</span><br></pre></td></tr></table></figure>
-<h4 id="IO-函子"><a href="#IO-函子" class="headerlink" title="IO 函子"></a>IO 函子</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Functor</span> <span class="type">IO</span> <span class="keyword">where</span></span></span><br><span class="line">	fmap f action = <span class="keyword">do</span></span><br><span class="line">		result &lt;- action</span><br><span class="line">		return (f result)</span><br></pre></td></tr></table></figure>
-<p>看看上面fmap的定义是不是很清晰，IO可以最为函子来看。</p>
-<h4 id="gt-也是函子"><a href="#gt-也是函子" class="headerlink" title="(-&gt;) 也是函子"></a>(-&gt;) 也是函子</h4><p>a -&gt; b 就相当于 (-&gt;) a b， -&gt; 是一个中缀类型构造器（卧槽这都行）。</p>
-<p>然后我们推算一下它的fmap:</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">fmap</span> :: (a -&gt; b) -&gt; f a -&gt; f b</span><br><span class="line"><span class="title">f</span> = (-&gt;) r</span><br><span class="line"><span class="title">fmap</span> :: (a -&gt; b) -&gt; ((-&gt;) r a) -&gt; ((-&gt;) r b)</span><br><span class="line"><span class="title">fmap</span> :: (a -&gt; b) -&gt; (r -&gt; a) -&gt; (r -&gt; b)</span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Functor</span> ((-&gt;) r) <span class="keyword">where</span></span></span><br><span class="line">	fmap = (.)</span><br></pre></td></tr></table></figure>
-<p>所以fmap 对 函数而言就是函数编组(Function Composition)</p>
-<h4 id="函数提升-lifting"><a href="#函数提升-lifting" class="headerlink" title="函数提升(lifting)"></a>函数提升(<em>lifting</em>)</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">fmap</span> :: (a -&gt; b) -&gt; (f a -&gt; f b)</span><br></pre></td></tr></table></figure>
-<p>就是一个函数的入参和出参都被函子包了一层，也是fmap的另一种理解。</p>
-<h4 id="函子俩定律"><a href="#函子俩定律" class="headerlink" title="函子俩定律"></a>函子俩定律</h4><ol>
-<li><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">fmap</span> id theFactor = theFactor</span><br></pre></td></tr></table></figure>
-</li>
-<li><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">fmap</span> (f . g) = fmap f . fmap g</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<h3 id="Applicative"><a href="#Applicative" class="headerlink" title="Applicative"></a>Applicative</h3><p>我们想把函子包的函数（如<code>Just (*3)</code>）应用到函子包的值里，要咋办? Applicative就干这个</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> (<span class="type">Functor</span> <span class="title">f</span>) =&gt; <span class="type">Applicative</span> f <span class="keyword">where</span></span> </span><br><span class="line">	pure :: a -&gt; f a</span><br><span class="line">	(&lt;*&gt;) :: f (a -&gt; b) -&gt; f a -&gt; f b</span><br></pre></td></tr></table></figure>
-<p><code>pure</code> 把任一一个值用包成函子</p>
-<p><code>&lt;*&gt;</code>把函子包着的函数应用出去</p>
-<p>为了方便，fmap 还有个中缀的版本<code>fmap = (&lt;$&gt;)</code>，然后就可以骚了：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">ghci</span>&gt; (++) &lt;$&gt; <span class="type">Just</span> <span class="string">"johntra"</span> &lt;*&gt; <span class="type">Just</span> <span class="string">"volta"</span> </span><br><span class="line"><span class="type">Just</span> <span class="string">"johntravolta"</span></span><br></pre></td></tr></table></figure>
-<h4 id="List-作为-Applicative"><a href="#List-作为-Applicative" class="headerlink" title="List 作为 Applicative"></a>List 作为 Applicative</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Applicative</span> [] <span class="keyword">where</span></span></span><br><span class="line">	pure x = [x]</span><br><span class="line">	fs &lt;*&gt; xs = [f x | f &lt;- fs, x &lt;- xs]</span><br></pre></td></tr></table></figure>
-<p>list的<code>&lt;*&gt;</code>运算结果是<em>笛卡儿积</em></p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">ghci</span>&gt; [(+),(*)] &lt;*&gt; [<span class="number">1</span>,<span class="number">2</span>] &lt;*&gt; [<span class="number">3</span>,<span class="number">4</span>] </span><br><span class="line">[<span class="number">4</span>,<span class="number">5</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">8</span>]</span><br></pre></td></tr></table></figure>
-<h4 id="IO-作为-Applicative"><a href="#IO-作为-Applicative" class="headerlink" title="IO 作为 Applicative"></a>IO 作为 Applicative</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Applicative</span> <span class="type">IO</span> <span class="keyword">where</span></span></span><br><span class="line">	pure = return </span><br><span class="line">	a &lt;*&gt; b = <span class="keyword">do</span></span><br><span class="line">		f &lt;- a</span><br><span class="line">		x &lt;- b</span><br><span class="line">		return (f x)</span><br></pre></td></tr></table></figure>
-<p>没毛病，函数也可以从IO传过来</p>
-<h4 id="函数作为Applicative"><a href="#函数作为Applicative" class="headerlink" title="函数作为Applicative"></a>函数作为Applicative</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Applicative</span> ((-&gt;) r) <span class="keyword">where</span></span></span><br><span class="line">	pure x = (\_ -&gt; x)</span><br><span class="line">	f &lt;*&gt; g = \x -&gt; f x (g x)</span><br></pre></td></tr></table></figure>
-<p><code>&lt;*&gt;</code>比较难想出来，可以看下它的参数类型推导：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;*&gt; :: f (a -&gt; b) -&gt; f a -&gt; f b</span><br><span class="line"><span class="title">f</span> = ((-&gt;) r)</span><br><span class="line">&lt;*&gt; :: ((-&gt;) r) (a -&gt; b) -&gt; ((-&gt;) r) a -&gt; ((-&gt;) r) b</span><br><span class="line">&lt;*&gt; :: (r -&gt; (a -&gt; b)) -&gt; (r -&gt; a) -&gt; (r -&gt; b)</span><br><span class="line"><span class="title">f</span> :: (r -&gt; (a -&gt; b))</span><br><span class="line"><span class="title">g</span> :: (r -&gt; a)</span><br><span class="line"><span class="title">f</span> x :: a -&gt; b</span><br><span class="line"><span class="title">g</span> x :: a</span><br><span class="line"><span class="title">f</span> x (g x) :: b</span><br><span class="line"><span class="title">f</span> &lt;*&gt; g = \x -&gt; f x (g x)</span><br></pre></td></tr></table></figure>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Prelude</span>&gt; (\x y z -&gt; sum [x, y, z]) &lt;$&gt; (+<span class="number">3</span>) &lt;*&gt; (*<span class="number">3</span>) &lt;*&gt; (/<span class="number">3</span>) $ <span class="number">99</span></span><br><span class="line"><span class="number">432.0</span></span><br></pre></td></tr></table></figure>
-<p>挺难理解的，作为课后题。</p>
-<h4 id="ZipList"><a href="#ZipList" class="headerlink" title="ZipList"></a>ZipList</h4><p>因为list &lt;*&gt; list 是笛卡儿积，我想一对一map怎么办? Haskell 在Control.Applicative里已经定义好了</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Applicative</span> <span class="type">ZipList</span> <span class="keyword">where</span></span></span><br><span class="line">		pure x = <span class="type">ZipList</span> (repeat x)</span><br><span class="line">		<span class="type">ZipList</span> fs &lt;*&gt; <span class="type">ZipList</span> xs = <span class="type">ZipList</span> (zipWiht (\f x -&gt; f x) fs xs)</span><br></pre></td></tr></table></figure>
-<h4 id="Applicative-定律"><a href="#Applicative-定律" class="headerlink" title="Applicative 定律"></a>Applicative 定律</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">pure</span> id &lt;*&gt; v = v</span><br><span class="line"><span class="title">pure</span> (.) &lt;*&gt; u &lt;*&gt; v &lt;*&gt; w = u &lt;*&gt; (v &lt;*&gt; w)</span><br><span class="line"><span class="title">pure</span> f &lt;*&gt; pure x = pure (f x)</span><br><span class="line"><span class="title">u</span> &lt;*&gt; pure y = pure ($ y) &lt;*&gt; u</span><br></pre></td></tr></table></figure>
-<h4 id="LiftA2"><a href="#LiftA2" class="headerlink" title="LiftA2"></a>LiftA2</h4><p>定义在Control.Applicative里</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">liftA2</span> :: (<span class="type">Applicative</span> f) =&gt; (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c</span><br><span class="line"><span class="title">liftA2</span> f a b = f &lt;$&gt; a &lt;*&gt; b</span><br></pre></td></tr></table></figure>
-<p>Applicative 比 普通Functor强在它可以lifting需要N个参数的函数</p>
-<p>用它造个轮子：将[f a] 转成 f [a]，f 是任意Applicative</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">sequenceA</span> :: (<span class="type">Applicative</span> f) =&gt; [f a] -&gt; f [a]</span><br><span class="line"><span class="title">sequenceA</span> [] = pure []</span><br><span class="line"><span class="title">sequenceA</span> x:xs = liftA2 (:) x $ sequenceA xs</span><br><span class="line"><span class="comment">--or foldr</span></span><br><span class="line"><span class="title">sequenceA</span> = foldr (liftA2 (:)) (pure [])</span><br></pre></td></tr></table></figure>
+          11 函子以及Applicative函子函子是那些可以被map的类型，比如List, Maybe, Tree等。它们共有一个函数
+1fmap :: (a -&gt; b) -&gt; f a -&gt; f b
+IO 函子1234instance Functor IO where	fmap f action = do		result &lt;- action		return (f result)
 
-          
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/27/11_applicative functors/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -951,20 +852,17 @@
       
         
           
-            <h2 id="10-用函数解决几个问题"><a href="#10-用函数解决几个问题" class="headerlink" title="10. 用函数解决几个问题"></a>10. 用函数解决几个问题</h2><ul>
-<li><p>Solve RPN</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">solveRPN</span> :: <span class="type">String</span> -&gt; <span class="type">Double</span></span><br><span class="line"><span class="title">solveRPN</span> = head . foldl f [] . words</span><br><span class="line">    <span class="keyword">where</span> f (x:y:ys) <span class="string">"*"</span> = (y * x):ys</span><br><span class="line">          f (x:y:ys) <span class="string">"+"</span> = (y + x):ys</span><br><span class="line">          f (x:y:ys) <span class="string">"-"</span> = (y - x):ys</span><br><span class="line">          f (x:y:ys) <span class="string">"/"</span> = (y / x):ys </span><br><span class="line">          f (x:y:ys) <span class="string">"^"</span> = (y ** x):ys </span><br><span class="line">          f (x:xs) <span class="string">"ln"</span> = log x:xs </span><br><span class="line">          f xs <span class="string">"sum"</span> = [sum xs]</span><br><span class="line">          f xs numberStr = read numberStr:xs</span><br></pre></td></tr></table></figure>
-<p>​</p>
-</li>
-</ul>
-<ul>
-<li><p>最短路径</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Data.List</span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Section</span> = <span class="type">Section</span> &#123; <span class="title">getA</span> :: <span class="type">Int</span>, <span class="title">getB</span> :: <span class="type">Int</span>, <span class="title">getC</span> :: <span class="type">Int</span> &#125; </span></span><br><span class="line">                <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"><span class="class"><span class="keyword">type</span> <span class="type">RoadSystem</span> = [<span class="type">Section</span>]</span></span><br><span class="line"></span><br><span class="line"><span class="title">headthrowToLondon</span> :: <span class="type">RoadSystem</span></span><br><span class="line"><span class="title">headthrowToLondon</span> = [<span class="type">Section</span> <span class="number">50</span> <span class="number">10</span> <span class="number">30</span> , </span><br><span class="line">                     <span class="type">Section</span> <span class="number">5</span> <span class="number">90</span> <span class="number">20</span> , </span><br><span class="line">                     <span class="type">Section</span> <span class="number">40</span> <span class="number">2</span> <span class="number">25</span> , </span><br><span class="line">                     <span class="type">Section</span> <span class="number">10</span> <span class="number">8</span> <span class="number">0</span> ]</span><br><span class="line">                     </span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Label</span> = <span class="type">A</span> | <span class="type">B</span> | <span class="type">C</span> <span class="keyword">deriving</span> (<span class="type">Show</span>)</span></span><br><span class="line"><span class="class"><span class="keyword">type</span> <span class="type">Path</span> = [(<span class="type">Label</span>, <span class="type">Int</span>)]</span></span><br><span class="line"></span><br><span class="line"><span class="title">optimalPath</span> :: <span class="type">RoadSystem</span> -&gt; <span class="type">Path</span></span><br><span class="line"><span class="title">roadStep</span> :: (<span class="type">Path</span>, <span class="type">Path</span>) -&gt; <span class="type">Section</span> -&gt; (<span class="type">Path</span>, <span class="type">Path</span>)</span><br><span class="line"><span class="title">roadStep</span> (p1, p2) (<span class="type">Section</span> a b c) = </span><br><span class="line">    <span class="keyword">let</span> t1 = sum $ map snd p1</span><br><span class="line">        t2 = sum $ map snd p2</span><br><span class="line">        forward1 = t1 + a</span><br><span class="line">        cross1 = t2 + b + c</span><br><span class="line">        forward2 = t2 + b</span><br><span class="line">        cross2 = t1 + a + c</span><br><span class="line">        newP1 = <span class="keyword">if</span> forward1 &lt;= cross1</span><br><span class="line">                    <span class="keyword">then</span> (<span class="type">A</span>, a):p1</span><br><span class="line">                    <span class="keyword">else</span> (<span class="type">C</span>, c):(<span class="type">B</span>, b):p2</span><br><span class="line">        newP2 = <span class="keyword">if</span> forward2 &lt;= cross2</span><br><span class="line">                    <span class="keyword">then</span> (<span class="type">B</span>, b):p2</span><br><span class="line">                    <span class="keyword">else</span> (<span class="type">C</span>, c):(<span class="type">A</span>, a):p1</span><br><span class="line">    <span class="keyword">in</span> (newP1, newP2)</span><br><span class="line"></span><br><span class="line"><span class="title">optimalPath</span> roadSystem = </span><br><span class="line">    <span class="keyword">let</span> (bestA, bestB) = foldl roadStep ([], []) roadSystem</span><br><span class="line">    <span class="keyword">in</span> <span class="keyword">if</span> sum (map snd bestA) &lt;= sum (map snd bestB)</span><br><span class="line">            <span class="keyword">then</span> reverse bestA</span><br><span class="line">            <span class="keyword">else</span> reverse bestB</span><br><span class="line">            </span><br><span class="line">            </span><br><span class="line"><span class="title">groupsOf</span> :: <span class="type">Int</span> -&gt; [a] -&gt; [[a]]</span><br><span class="line"><span class="title">groupsOf</span> <span class="number">0</span> _ = undefined</span><br><span class="line"><span class="title">groupsOf</span> _ [] = []</span><br><span class="line"><span class="title">groupsOf</span> x ls = take x ls : groupsOf x (drop x ls)</span><br><span class="line"></span><br><span class="line"><span class="title">main</span> = <span class="keyword">do</span></span><br><span class="line">    contents &lt;- getContents</span><br><span class="line">    <span class="keyword">let</span> threes = groupsOf <span class="number">3</span> (map read $ lines contents)</span><br><span class="line">        roadSystem = map (\[a,b,c] -&gt; <span class="type">Section</span> a b c) threes</span><br><span class="line">        path = optimalPath roadSystem</span><br><span class="line">        pathString = concat $ map (show . fst) path</span><br><span class="line">        pathTime = sum $ map snd path</span><br><span class="line">    putStrLn $ <span class="string">"The best path to take is: "</span> ++ pathString</span><br><span class="line">    putStrLn $ <span class="string">"Time taken: "</span> ++ show pathTime</span><br></pre></td></tr></table></figure>
-<p>​</p>
-</li>
-</ul>
-
-          
+          10. 用函数解决几个问题
+Solve RPN
+12345678910solveRPN :: String -&gt; DoublesolveRPN = head . foldl f [] . words    where f (x:y:ys) "*" = (y * x):ys          f (x:y:ys) "+" = (y + x):ys          f (x:y:ys) "-"
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/25/10_Problems/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1082,29 +980,18 @@
       
         
           
-            <h2 id="9-More-IO"><a href="#9-More-IO" class="headerlink" title="9. More IO"></a>9. More IO</h2><p>IO操作可以直接读取流，也就是说 getLine不只是从termimal拿键盘输入，也可以直接将文件作为流输入，如</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">capslocker</span> &lt; haiku.txt</span><br></pre></td></tr></table></figure>
-<h5 id="getContents"><a href="#getContents" class="headerlink" title="getContents"></a>getContents</h5><p>迟加载，只有用到他了他才去读， 他会一直读取， 直到碰到EOF或其他停止记号。</p>
-<h5 id="interact"><a href="#interact" class="headerlink" title="interact"></a>interact</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">interact :: (String -&gt; String) -&gt; IO ()</span><br></pre></td></tr></table></figure>
-<p>读取输入，经过f变换，输出。</p>
-<h4 id="读写文件"><a href="#读写文件" class="headerlink" title="读写文件"></a>读写文件</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> System.IO</span><br><span class="line">	main = <span class="keyword">do</span> </span><br><span class="line">		handle &lt;- openFile <span class="string">"girlfriend.txt"</span> <span class="type">ReadMode</span> </span><br><span class="line">		contents &lt;- hGetContents handle </span><br><span class="line">		putStr contents </span><br><span class="line">		hClose handle</span><br></pre></td></tr></table></figure>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">openFile</span> :: <span class="type">FilePath</span> -&gt; <span class="type">IOMode</span> -&gt; <span class="type">IO</span> <span class="type">Handle</span></span><br><span class="line"><span class="class"><span class="keyword">type</span> <span class="type">FilePath</span> = <span class="type">String</span></span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">IOMode</span> = <span class="type">ReadMode</span> | <span class="type">WriteMode</span> | <span class="type">AppendMode</span> | <span class="type">ReadWriteMode</span></span></span><br></pre></td></tr></table></figure>
-<h5 id="withFile"><a href="#withFile" class="headerlink" title="withFile"></a>withFile</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">withFile</span> :: <span class="type">FilePath</span> -&gt; <span class="type">IOMode</span> -&gt; (<span class="type">Handle</span> -&gt; <span class="type">IO</span> a) -&gt; <span class="type">IO</span> a</span><br></pre></td></tr></table></figure>
-<p>就是上面写法的简化， 结束或异常时自动帮你关闭handle。有点jdk7 try with resouces的意思。</p>
-<h5 id="bracket"><a href="#bracket" class="headerlink" title="bracket"></a>bracket</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">bracket</span> :: <span class="type">IO</span> a -&gt; (a -&gt; <span class="type">IO</span> b) -&gt; (a -&gt; <span class="type">IO</span> c) -&gt; <span class="type">IO</span> c</span><br></pre></td></tr></table></figure>
-<p>带java finally操作的IO行为</p>
-<p>第一个函数在结束或碰到异常时如何关闭资源，第二函数是具体的操作</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">withFile</span> :: <span class="type">FilePath</span> -&gt; <span class="type">IOMode</span> -&gt; (<span class="type">Handle</span> -&gt; <span class="type">IO</span> a) -&gt; <span class="type">IO</span> a </span><br><span class="line"><span class="title">withFile</span> name mode f = bracket (openFile name mode)</span><br><span class="line">	(\handle -&gt; hClose handle) </span><br><span class="line">	(\handle -&gt; f handle)</span><br></pre></td></tr></table></figure>
-<p>还有一个bracketOnError 只在异常时跑第一个函数</p>
-<h5 id="readFile-appendFile-writeFile-removeFile-renameFile"><a href="#readFile-appendFile-writeFile-removeFile-renameFile" class="headerlink" title="readFile appendFile writeFile removeFile renameFile"></a>readFile appendFile writeFile removeFile renameFile</h5><p>就是省去了中间的handle，不多讲</p>
-<h5 id="getArgs-getProgName"><a href="#getArgs-getProgName" class="headerlink" title="getArgs getProgName"></a>getArgs getProgName</h5><p>获取命令行参数，获取程序名。import System.Environment</p>
-<h4 id="随机数"><a href="#随机数" class="headerlink" title="随机数"></a>随机数</h4><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">random</span> :: (<span class="type">RandomGen</span> g, <span class="type">Random</span> a) =&gt; g -&gt; (a, g)</span><br><span class="line"><span class="title">ghci</span>&gt; random (mkStdGen <span class="number">949488</span>) :: (<span class="type">Float</span>, <span class="type">StdGen</span>) </span><br><span class="line">(<span class="number">0.8938442</span>,<span class="number">1597344447</span> <span class="number">1655838864</span>)</span><br><span class="line"><span class="title">ghci</span>&gt; random (mkStdGen <span class="number">949488</span>) :: (<span class="type">Bool</span>, <span class="type">StdGen</span>) </span><br><span class="line">(<span class="type">False</span>,<span class="number">1485632275</span> <span class="number">40692</span>) </span><br><span class="line"><span class="title">ghci</span>&gt; random (mkStdGen <span class="number">949488</span>) :: (<span class="type">Integer</span>, <span class="type">StdGen</span>) </span><br><span class="line">(<span class="number">1691547873</span>,<span class="number">1597344447</span> <span class="number">1655838864</span>)</span><br></pre></td></tr></table></figure>
-<p>一般随机数将前一个生成的值作为后一个值的Gen来用，保持一致随机</p>
-<h5 id="ByteString"><a href="#ByteString" class="headerlink" title="ByteString"></a>ByteString</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="keyword">qualified</span> Data.ByteString.Lazy <span class="keyword">as</span> B </span><br><span class="line"><span class="keyword">import</span> <span class="keyword">qualified</span> Data.ByteString <span class="keyword">as</span> S</span><br></pre></td></tr></table></figure>
-<p>S是strict版的，读入前必须告诉它要读多少个单位的byte。</p>
-<p>B是lazy版的，与getContents不同的是，每次会读一个chunck的内容。一个chunck64KB，看CPU L2Cache。</p>
-
-          
+          9. More IOIO操作可以直接读取流，也就是说 getLine不只是从termimal拿键盘输入，也可以直接将文件作为流输入，如
+1capslocker &lt; haiku.txt
+getContents迟加载，只有用到他了他才去读， 他会一直读取， 直到碰到EOF或其他停止记号。
+interact1interact :: (String -&gt; String) -&gt; IO ()
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/20/9_IO_more/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1222,20 +1109,15 @@
       
         
           
-            <h2 id="8-Input-amp-Output"><a href="#8-Input-amp-Output" class="headerlink" title="8. Input &amp; Output"></a>8. Input &amp; Output</h2><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Data.Char</span><br><span class="line"><span class="title">main</span> = <span class="keyword">do</span> </span><br><span class="line">	putStrLn <span class="string">"What's your first name?"</span> </span><br><span class="line">	firstName &lt;- getLine </span><br><span class="line">	putStrLn <span class="string">"What's your last name?"</span> </span><br><span class="line">	lastName &lt;- getLine </span><br><span class="line">	<span class="keyword">let</span> bigFirstName = map toUpper firstName </span><br><span class="line">		bigLastName = map toUpper lastName </span><br><span class="line">	putStrLn $ <span class="string">"hey "</span> ++ bigFirstName ++ <span class="string">" "</span> ++ bigLastName ++ <span class="string">", how are you?"</span></span><br></pre></td></tr></table></figure>
-<p>do 意味着后面进行IO操作</p>
-<p>&lt;-  是IO操作，左边取IO行为的结果。</p>
-<p>let 与之前的一样，绑定数值。</p>
-<p>return 将右边的值作为IO结果返回，如 wahaha &lt;- return “wahaha”</p>
-<h5 id="when"><a href="#when" class="headerlink" title="when"></a>when</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import Control.Monad</span><br><span class="line">main = do </span><br><span class="line">	input &lt;- getLine </span><br><span class="line">	when (input == &quot;SWORDFISH&quot;) $ do putStrLn input</span><br></pre></td></tr></table></figure>
-<p>参数为一个布尔和一个IO行为，布尔为True的时候才进行IO行为，否则返回IO()</p>
-<h5 id="sequence"><a href="#sequence" class="headerlink" title="sequence"></a>sequence</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">sequence</span> $ map print [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br></pre></td></tr></table></figure>
-<p>将一组IO行为按顺序进行，并输出结果</p>
-<h5 id="mapM-amp-mapM"><a href="#mapM-amp-mapM" class="headerlink" title="mapM &amp; mapM_"></a>mapM &amp; mapM_</h5><p>相当于sequence $ map，右边不会输出结果</p>
-<h5 id="forever"><a href="#forever" class="headerlink" title="forever"></a>forever</h5><p>while(true) $ do any IO action…</p>
-<h5 id="forM"><a href="#forM" class="headerlink" title="forM"></a>forM</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">forM :: (Monad m, Traversable t) =&gt; t a -&gt; (a -&gt; m b) -&gt; m (t b)</span><br></pre></td></tr></table></figure>
-
-          
+          8. Input &amp; Output123456789import Data.Charmain = do 	putStrLn "What's your first name?" 	firstName &lt;- getLine 	putStrLn "What's your last name?" 	lastName &lt;- getLine 	let bigFirstName = map 
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/09/8_IO/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1353,79 +1235,17 @@
       
         
           
-            <h2 id="7-Data-Type-amp-Type-Parameters"><a href="#7-Data-Type-amp-Type-Parameters" class="headerlink" title="7.Data Type &amp; Type Parameters"></a>7.Data Type &amp; Type Parameters</h2><h5 id="数值类型定义："><a href="#数值类型定义：" class="headerlink" title="数值类型定义："></a>数值类型定义：</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Bool</span> = <span class="type">False</span> | <span class="type">True</span></span></span><br></pre></td></tr></table></figure>
-<h5 id="数值构造器（value-Constructor）："><a href="#数值构造器（value-Constructor）：" class="headerlink" title="数值构造器（value Constructor）："></a>数值构造器（value Constructor）：</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Shape</span> = <span class="type">Circle</span> <span class="type">Float</span> <span class="type">Float</span> <span class="type">Float</span> | <span class="type">Rectangle</span> <span class="type">Float</span> <span class="type">Float</span> <span class="type">Float</span> <span class="type">Float</span></span></span><br></pre></td></tr></table></figure>
-<p>上面Circle 和 Rectangle 就是俩，他接受若干类型和个数的数值然后返回一个<strong>类型对象</strong>，他们本质上也是函数</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Rectangle</span> :: <span class="type">Float</span> -&gt; <span class="type">Float</span> -&gt; <span class="type">Float</span> -&gt; <span class="type">Float</span> -&gt; <span class="type">Shape</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">area</span> :: <span class="type">Shape</span> -&gt; <span class="type">Float</span></span><br><span class="line"><span class="title">area</span> (<span class="type">Circle</span> _ _ r) = pi * r ^ <span class="number">2</span></span><br><span class="line"><span class="title">area</span> $ <span class="type">Circle</span> <span class="number">10</span> <span class="number">20</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
-<p>上面用到了模式匹配(pattern matching)</p>
-<p>为了在控制台展示一个类型，要让他得到(deriving)？Show类型</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Shape</span> = <span class="type">Circle</span> <span class="type">Float</span> <span class="type">Float</span> <span class="type">Float</span> | <span class="type">Rectangle</span> <span class="type">Float</span> <span class="type">Float</span> <span class="type">Float</span> <span class="type">Float</span></span></span><br><span class="line">			 <span class="keyword">deriving</span>(<span class="type">Show</span>)</span><br><span class="line">&gt; <span class="type">Circle</span> <span class="number">10</span> <span class="number">20</span> <span class="number">30</span></span><br><span class="line">&gt; <span class="type">Circle</span> <span class="number">10.0</span> <span class="number">20.0</span> <span class="number">30.0</span></span><br></pre></td></tr></table></figure>
-<p>因为数值构造器是函数，所以我们可以做任何高阶函数干的事，比如map, currying.</p>
-<p>除了系统自带的类型，我们还可以将自定义类型作为参数类型：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Point</span> = <span class="type">Point</span> <span class="type">Float</span> <span class="type">Float</span> <span class="keyword">deriving</span>(<span class="type">Show</span>)</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Shape</span> = <span class="type">Circle</span> <span class="type">Point</span> <span class="type">Float</span> | <span class="type">Rectangle</span> <span class="type">Point</span> <span class="type">Point</span> <span class="keyword">deriving</span>(<span class="type">Show</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="title">area</span> :: (<span class="type">Rectangele</span> (<span class="type">Point</span> x1 y1) (<span class="type">Point</span> x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - y1)</span><br><span class="line">&gt; area (<span class="type">Rectangle</span> (<span class="type">Point</span> <span class="number">0</span> <span class="number">0</span>) (<span class="type">Point</span> <span class="number">2</span> <span class="number">3</span>))</span><br><span class="line">&gt; <span class="number">6.0</span></span><br></pre></td></tr></table></figure>
-<p>将数值构造器向外暴露用俩. 通配符，可以把该类型下所有的构造器全部暴露出去</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> Shapes ( <span class="type">Point(..)</span> , <span class="type">Shape(..)</span> , <span class="title">area</span> , <span class="title">nudge</span> , <span class="title">baseCircle</span> , <span class="title">baseRect</span> ) <span class="keyword">where</span></span><br></pre></td></tr></table></figure>
-<p>你想给构造器中的类型起个有意义的名字，可以用record syntax 语法起别名（实际上也是函数）</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Person</span> = <span class="type">Person</span> &#123; <span class="title">firstName</span> :: <span class="type">String</span> , <span class="title">lastName</span> :: <span class="type">String</span> , <span class="title">age</span> :: <span class="type">Int</span> , <span class="title">height</span> :: <span class="type">Float</span> , <span class="title">phoneNumber</span> :: <span class="type">String</span> , <span class="title">flavor</span> :: <span class="type">String</span> &#125; <span class="keyword">deriving</span> (<span class="type">Show</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="title">ghci</span>&gt; :t flavor </span><br><span class="line"><span class="title">flavor</span> :: <span class="type">Person</span> -&gt; <span class="type">String</span></span><br><span class="line"><span class="title">ghci</span>&gt; <span class="keyword">let</span> sPerson = &#123;fistName = <span class="string">"mother"</span>, lastName= <span class="string">"dad"</span>, age = <span class="number">12</span>, height = <span class="number">123.4</span>&#125;</span><br></pre></td></tr></table></figure>
-<h5 id="类型构造器（Type-Constructors）："><a href="#类型构造器（Type-Constructors）：" class="headerlink" title="类型构造器（Type Constructors）："></a>类型构造器（Type Constructors）：</h5><p>接受类型参数（type parameter）返回一个新类型的函数叫 类型构造器</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Maybe</span> a = <span class="type">Nothing</span> | <span class="type">Just</span> a</span></span><br></pre></td></tr></table></figure>
-<p>a 是类型参数，它可以是String 也可以是 Int 等。</p>
-<p>绝大多数时间，我们不需要指定类型参数，因为haskell自带类型推导。</p>
-<p>碰上模棱俩可的情况就要指定一下了，比如：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Just</span> <span class="number">3</span> :: <span class="type">Maybe</span> <span class="type">Int</span></span><br></pre></td></tr></table></figure>
-<p>其实相当于java中的泛型</p>
-<p>泛型约束：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="type">Ord</span> k) =&gt;</span><br></pre></td></tr></table></figure>
-<p>k只能是可排序的 实现Ord，书本不建议在类型构造器上加约束，因为对应的所有函数都要加一遍。完全可以在需要的函数上再加约束。</p>
-<h5 id="几个常用的deriving"><a href="#几个常用的deriving" class="headerlink" title="几个常用的deriving"></a>几个常用的deriving</h5><ul>
-<li>Show ，就是把数据类型变成字符串</li>
-<li>Read ，就是把字符串读取成数据类型</li>
-</ul>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">mysteryDude</span> = <span class="string">"Person &#123; firstName =\"Michael\""</span> ++ <span class="string">", lastName =\"Diamond\""</span> ++ <span class="string">", age = 43&#125;"</span></span><br><span class="line"><span class="title">ghci</span>&gt; read mysteryDude :: <span class="type">Person</span> <span class="type">Person</span> &#123;firstName = <span class="string">"Michael"</span>, lastName = <span class="string">"Diamond"</span>, age = <span class="number">43</span>&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>Eq ， 比较是否相等</li>
-<li>Ord ， 排序。先看构造器，再看参数。先声明的构造器更小，相同构造器，比较参数大小。</li>
-<li>Enum ， 枚举，对于某个值有前值和后值</li>
-</ul>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">ghci</span>&gt; succ <span class="type">Monday</span> </span><br><span class="line"><span class="type">Tuesday</span> </span><br><span class="line"><span class="title">ghci</span>&gt; pred <span class="type">Saturday</span> </span><br><span class="line"><span class="type">Friday</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>Bounded ， 有上下限</li>
-</ul>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">ghci</span>&gt; minBound :: <span class="type">Day</span> </span><br><span class="line"><span class="type">Monday</span> </span><br><span class="line"><span class="title">ghci</span>&gt; maxBound :: <span class="type">Day</span> </span><br><span class="line"><span class="type">Sunday</span></span><br></pre></td></tr></table></figure>
-<h5 id="类型同义词（Type-Synonyms）"><a href="#类型同义词（Type-Synonyms）" class="headerlink" title="类型同义词（Type Synonyms）"></a>类型同义词（Type Synonyms）</h5><p>就是给一个类型定义一个短名</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">type</span> <span class="type">PhoneBook</span> = [(<span class="type">String</span>, <span class="type">String</span>)]</span></span><br></pre></td></tr></table></figure>
-<p>也可以给类型构造器用</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">type</span> <span class="type">AssocList</span> k v = [(<span class="title">k</span>. <span class="title">v</span>)]</span></span><br></pre></td></tr></table></figure>
-<p>与data 关键字不同，左边是实际类型(构造器)对象，而前者是统称，非实际对象。</p>
-<h5 id="递归构造器"><a href="#递归构造器" class="headerlink" title="递归构造器"></a>递归构造器</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">List</span> a = <span class="type">Empty</span> | <span class="type">Cons</span> a (<span class="type">List</span> <span class="title">a</span>) <span class="keyword">deriving</span> (<span class="type">Show</span>, <span class="type">Read</span>, <span class="type">Eq</span>, <span class="type">Ord</span>)</span></span><br></pre></td></tr></table></figure>
-<p>把Con用中缀构造器简化一下（中缀构造器只能以:打头）</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">List</span> a = <span class="type">Empty</span> | a :-: (<span class="type">List</span> <span class="title">a</span>) <span class="keyword">deriving</span> (<span class="type">Show</span>, <span class="type">Read</span>, <span class="type">Eq</span>, <span class="type">Ord</span>)</span></span><br></pre></td></tr></table></figure>
-<p>然后最头疼的来了，看下数组连接函数混用中缀构造器：</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">(^++) :: <span class="type">List</span> a -&gt; <span class="type">List</span> a -&gt; <span class="type">List</span> a </span><br><span class="line"><span class="type">Empty</span> ^++ ys = ys </span><br><span class="line">(x :-: xs) ^++ ys = x :-: (xs ^++ ys)</span><br><span class="line"></span><br><span class="line"><span class="title">ghci</span>&gt; <span class="keyword">let</span> a = <span class="number">3</span> :-: <span class="number">4</span> :-: <span class="number">5</span> :-: <span class="type">Empty</span> </span><br><span class="line"><span class="title">ghci</span>&gt; <span class="keyword">let</span> b = <span class="number">6</span> :-: <span class="number">7</span> :-: <span class="type">Empty</span> </span><br><span class="line"><span class="title">ghci</span>&gt; a ^++ b </span><br><span class="line"><span class="number">3</span> :-: (<span class="number">4</span> :-: (<span class="number">5</span> :-: (<span class="number">6</span> :-: (<span class="number">7</span> :-: <span class="type">Empty</span>))))</span><br></pre></td></tr></table></figure>
-<p>构造器在这种的作用主要是 模式匹配 和 值构造。</p>
-<h4 id="类型类-接口（Type-Classes）"><a href="#类型类-接口（Type-Classes）" class="headerlink" title="类型类/接口（Type Classes）"></a>类型类/接口（Type Classes）</h4><p>类型类定义了一些函数的声明（类似接口），这些函数声明构成一定的规则。</p>
-<p>所有类型类的实体要实现最少个函数去覆盖类型类中所有函数声明（minimal complete deﬁnition ）。</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="type">Eq</span> a <span class="keyword">where</span></span> </span><br><span class="line">	(==) :: a -&gt; a -&gt; <span class="type">Bool</span> </span><br><span class="line">	(/=) :: a -&gt; a -&gt; <span class="type">Bool</span></span><br><span class="line">	x == y = not (x /= y) </span><br><span class="line">	x /= y = not (x == y)</span><br></pre></td></tr></table></figure>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">TrafficLight</span> = <span class="type">Red</span> | <span class="type">Yellow</span> | <span class="type">Green</span></span></span><br><span class="line"><span class="class"><span class="keyword">instance</span> <span class="type">Eq</span> <span class="type">TrafficLight</span> <span class="keyword">where</span></span> </span><br><span class="line">	<span class="type">Red</span> == <span class="type">Red</span> = <span class="type">True</span> </span><br><span class="line">	<span class="type">Green</span> == <span class="type">Green</span> = <span class="type">True</span> </span><br><span class="line">	<span class="type">Yellow</span> == <span class="type">Yellow</span> = <span class="type">True</span> </span><br><span class="line">	_ == _ = <span class="type">False</span></span><br></pre></td></tr></table></figure>
-<p>因为类型类里已经定义了不相等的情况，所以实现类里只要定义相等的情况就能完成实现</p>
-<h5 id="子类-接口（Subclassing）"><a href="#子类-接口（Subclassing）" class="headerlink" title="子类/接口（Subclassing）"></a>子类/接口（Subclassing）</h5><p>其实就是继承了父类的函数声明规则</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> (<span class="type">Eq</span> <span class="title">a</span>) =&gt; <span class="type">Num</span> a <span class="keyword">where</span></span> </span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
-<p>Num必须带有有Eq的规则，也就是类型实体要定义==或/=</p>
-<h5 id="泛型类型的类-接口实现"><a href="#泛型类型的类-接口实现" class="headerlink" title="泛型类型的类/接口实现"></a>泛型类型的类/接口实现</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">instance</span> (<span class="type">Eq</span> <span class="title">m</span>) =&gt; <span class="type">Eq</span> (<span class="type">Maybe</span> <span class="title">m</span>) <span class="keyword">where</span></span> </span><br><span class="line">	<span class="type">Just</span> x == <span class="type">Just</span> y = x == y </span><br><span class="line">	<span class="type">Nothing</span> == <span class="type">Nothing</span> = <span class="type">True</span> </span><br><span class="line">	_ == _ = <span class="type">False</span></span><br></pre></td></tr></table></figure>
-<p>类型构造器不能直接实现类才怪，如果类型构造器作为类型，那么声明里面每个参数和返回必须是一个确定的(Concrete)类型。带上参数后就行了。</p>
-<h4 id="函子（Functor）"><a href="#函子（Functor）" class="headerlink" title="函子（Functor）"></a>函子（Functor）</h4><p>开始变魔术了。</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="type">Functor</span> f <span class="keyword">where</span></span> </span><br><span class="line">	fmap :: (a -&gt; b) -&gt; f a -&gt; f b</span><br></pre></td></tr></table></figure>
-<p>这里的 f 是一个 类型构造器（type constructor）。</p>
-<p>比如 Maybe,  比如 []。</p>
-<p>但是对于那种需要多个参数的类型构造器，fmap只对最后一个类型起效，因为函子要的类型构造器只能拿进一个类型，就只能拿构造器的偏函数，如 Map k v的Map k</p>
-<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; fmap (+<span class="number">1</span>) $ <span class="type">Left</span> <span class="number">1</span></span><br><span class="line">&gt; <span class="type">Left</span> <span class="number">1</span></span><br><span class="line">&gt; fmap (+<span class="number">1</span>) $ <span class="type">Right</span> <span class="number">1</span></span><br><span class="line">&gt; <span class="type">Right</span> <span class="number">2</span></span><br></pre></td></tr></table></figure>
-<h5 id="类型的类型（Kind）"><a href="#类型的类型（Kind）" class="headerlink" title="类型的类型（Kind）"></a>类型的类型（Kind）</h5><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">ghci</span>&gt; :k <span class="type">Maybe</span> </span><br><span class="line">	<span class="type">Maybe</span> :: * -&gt; *</span><br></pre></td></tr></table></figure>
-<p>* 代表确定的类型</p>
-<p>就是说Maybe是拿一个确定类型产生确定类型的函数（构造器）。</p>
-<p>所以函子里的 f 的 kind 必须是 * -&gt; *</p>
-
-          
+          7.Data Type &amp; Type Parameters数值类型定义：1data Bool = False | True
+数值构造器（value Constructor）：1data Shape = Circle Float Float Float | Rectangle Float Float Float Float
+上面Circle 和 Rectangle 就是俩，他接受若干类型和个
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/07/05/7_types/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1514,6 +1334,15 @@
           
 
           
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
 
         </nav>
 
@@ -1521,12 +1350,37 @@
 
         <div class="links-of-author motion-element">
           
+            
+              <span class="links-of-author-item">
+                <a href="https://www.codewars.com/users/Nachtflug" target="_blank" title="<img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>">
+                  
+                    
+                      <img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>
+                    
+                </a>
+              </span>
+            
+          
         </div>
 
         
         
 
         
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情(qian)链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.51cloud.win" title="Hill's Notes" target="_blank">Hill's Notes</a>
+                </li>
+              
+            </ul>
+          </div>
         
 
         
@@ -1695,6 +1549,21 @@
   
 
   
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
 
   
 
