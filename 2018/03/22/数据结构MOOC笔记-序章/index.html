@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="dsa, 基础," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="最近在查漏补缺看看计算机学科最重要的课程之一，课程讲得很好。 课程地址算法时间复杂度 大$O$记号：算法的最差情况时间复杂度 大$Ω$记号：最好情况 大$Θ$记号：当算法最差情况与最好情况属同一复杂度时，则可用该记号。$Θ(n) = Ω(n) = O(n)$    常见时间复杂度： | 名称     | 记号                                       | 分类">
+<meta name="keywords" content="dsa, 基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构MOOC笔记-序章">
+<meta property="og:url" content="http://yoursite.com/2018/03/22/数据结构MOOC笔记-序章/index.html">
+<meta property="og:site_name" content="摸鱼日志">
+<meta property="og:description" content="最近在查漏补缺看看计算机学科最重要的课程之一，课程讲得很好。 课程地址算法时间复杂度 大$O$记号：算法的最差情况时间复杂度 大$Ω$记号：最好情况 大$Θ$记号：当算法最差情况与最好情况属同一复杂度时，则可用该记号。$Θ(n) = Ω(n) = O(n)$    常见时间复杂度： | 名称     | 记号                                       | 分类">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-22T06:50:11.603Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构MOOC笔记-序章">
+<meta name="twitter:description" content="最近在查漏补缺看看计算机学科最重要的课程之一，课程讲得很好。 课程地址算法时间复杂度 大$O$记号：算法的最差情况时间复杂度 大$Ω$记号：最好情况 大$Θ$记号：当算法最差情况与最好情况属同一复杂度时，则可用该记号。$Θ(n) = Ω(n) = O(n)$    常见时间复杂度： | 名称     | 记号                                       | 分类">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/22/数据结构MOOC笔记-序章/"/>
+
+
+
+
+
+  <title>数据结构MOOC笔记-序章 | 摸鱼日志</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1273070403&web_id=1273070403" language="JavaScript"></script>
+  </div>
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">摸鱼日志</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/22/数据结构MOOC笔记-序章/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="<a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摸鱼日志">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构MOOC笔记-序章</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-22T14:50:11+08:00">
+                2018-03-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在查漏补缺看看计算机学科最重要的课程之一，课程讲得很好。</p>
+<h4 id="课程地址"><a href="#课程地址" class="headerlink" title="课程地址"></a><a href="http://www.xuetangx.com/courses/course-v1:TsinghuaX+30240184+sp/about" target="_blank" rel="noopener">课程地址</a></h4><h4 id="算法时间复杂度"><a href="#算法时间复杂度" class="headerlink" title="算法时间复杂度"></a>算法时间复杂度</h4><ul>
+<li><p>大$O$记号：算法的最差情况时间复杂度</p>
+<p>大$Ω$记号：最好情况</p>
+<p>大$Θ$记号：当算法最差情况与最好情况属同一复杂度时，则可用该记号。$Θ(n) = Ω(n) = O(n)$</p>
+</li>
+</ul>
+<ul>
+<li><p>常见时间复杂度：</p>
+<p>| 名称     | 记号                                       | 分类   |<br>| —— | —————————————- | —- |<br>| 常数复杂度  | $O(1)$                                   | 高效解  |<br>| 对数复杂度  | $O(log_{c}(n)) = O(log_{c}(2)) * O(log_{2}(n)) = O(logn)$ | 高效解  |<br>| 多项式复杂度 | $O(n^c) | c\geq 1$                      | 有效解  |<br>| 指数复杂度  | $O(c^n) = O(2^n)$                        | 难解   |</p>
+</li>
+</ul>
+<ul>
+<li><p>时间复杂度比较：</p>
+<p>$O(log^*n) &lt; O(loglogn)  &lt; O(logn) &lt; O(\sqrt{n}) &lt; O(n) &lt; O(nlogn)$</p>
+</li>
+</ul>
+<ul>
+<li><p>级数次操作与其时间复杂度：</p>
+<p>幂方级数：$1^d + 2^d +\cdots + n^d = O(n^{d+1})$</p>
+<p>几何级数：$a^0 + a^1 + a^2 + \cdots + a^n = \frac{a^{n+1} + 1}{a - 1} = O(2^n)$</p>
+<p>收敛级数：$O(1)$</p>
+<p>*调和级数：$1 + \frac{1}{2} +  \frac{1}{3} + \cdots +  \frac{1}{n} \approx ln(n) = O(logn)$</p>
+<p>*对数级数：$log1 + log2 + \cdots + logn = log(n!) \leq log(n^n)  = O(nlogn)$</p>
+</li>
+</ul>
+<ul>
+<li>分摊复杂度：操作m次，m足够大，得到时间T，由T/m进行复杂度分析。</li>
+<li>平均复杂度：输入实例符合某种概率分布，对各实例所得到的T进行加权求和得到的复杂度。</li>
+</ul>
+<h4 id="递归"><a href="#递归" class="headerlink" title="递归"></a>递归</h4><ul>
+<li><p>递归基（base case of recursion）：递归终止条件与值，如 $fibonacci(0) = 0, fibonacci(1) = 1$。</p>
+<p>​</p>
+</li>
+<li><p>线性递归（Linear recusion）：减而治之，每次处理最小单位，并<strong>只自调一次</strong>，与尾递归区别于最后一步不是递归操作。</p>
+<p>​</p>
+</li>
+<li><p>ADT：Abstract Data Type 抽象数据类型，就是数据类型的接口文档</p>
+</li>
+<li><p>DS：Data Structure 数据结构，具体语言根据ADT实现的数据类型封装。</p>
+</li>
+</ul>
+<h4 id="向量"><a href="#向量" class="headerlink" title="向量"></a>向量</h4><ul>
+<li>上溢：Overflow</li>
+<li>下溢：Underflow，指装载因子过小，$λ = size / capacity  &lt;&lt;  50\%$</li>
+</ul>
+<ul>
+<li><p>为何Vector动态扩容采用的是乘法形式而不是加法？</p>
+<p>假设向量初始容量为1，插入$n$个元素</p>
+<p>加法：每插入$c$个元素进行一次扩容，第$x$次扩容需要时间复杂度为$O(xc)$，得：</p>
+<p>​    $T(n) = c + 2c + 3c + \cdots + \frac{n-1}{c}*c  $  为算数级数 </p>
+<p>​    分摊复杂度：$T(n) / n = O(n)$</p>
+<p>​    $ λ \approx 100\%$</p>
+<p>乘法：每次乘2，第$x$次为$O(2^x)$，令$n = 2^c$</p>
+<p>​    $T(n) = 2 + 4 + 8 \cdots + 2^c$ 为几何级数 $O(2^{log_{2}n}) = O(n)$</p>
+<pre><code>分摊复杂度：$T(n) / n = O(1)$
+</code></pre><p>​    $λ \approx 50%$</p>
+<p>等于用空间换时间。</p>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dsa-基础/" rel="tag"># dsa, 基础</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/16/14_Monads_more/" rel="next" title="Learn You a Haskell for Great Good 读书笔记 14">
+                <i class="fa fa-chevron-left"></i> Learn You a Haskell for Great Good 读书笔记 14
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="<a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>" />
+          <p class="site-author-name" itemprop="name"><a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://www.codewars.com/users/Nachtflug" target="_blank" title="<img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>">
+                  
+                    
+                      <img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情(qian)链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.51cloud.win" title="Hill's Notes" target="_blank">Hill's Notes</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#课程地址"><span class="nav-number">1.</span> <span class="nav-text">课程地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#算法时间复杂度"><span class="nav-number">2.</span> <span class="nav-text">算法时间复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#递归"><span class="nav-number">3.</span> <span class="nav-text">递归</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#向量"><span class="nav-number">4.</span> <span class="nav-text">向量</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"><a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a></span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
