@@ -7,7 +7,7 @@
 
 <html class="theme-next muse use-motion" lang="zh-Hans">
 <head>
-  <meta charset="UTF-8"/>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 <meta name="theme-color" content="#222">
@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="MonadsFunctor —&amp;gt; Applicative —&amp;gt; Monad  直接上公式： 1(&amp;gt;&amp;gt;=) :: (Monad m) =&amp;gt; m a -&amp;gt; (a -&amp;gt; m b) -&amp;gt; m b 这个函数叫bind。 它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。 举个Maybe的例子 Maybe as Mona">
+<meta name="description" content="MonadsFunctor —-&amp;gt; Applicative —-&amp;gt; Monad  直接上公式： 1(&amp;gt;&amp;gt;=) :: (Monad m) =&amp;gt; m a -&amp;gt; (a -&amp;gt; m b) -&amp;gt; m b 这个函数叫bind。 它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。 举个Maybe的例子 Maybe as Mo">
 <meta name="keywords" content="haskell,functional programming">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Learn You a Haskell for Great Good 读书笔记 13">
 <meta property="og:url" content="http://yoursite.com/2017/10/12/13_Monads/index.html">
 <meta property="og:site_name" content="摸鱼日志">
-<meta property="og:description" content="MonadsFunctor —&amp;gt; Applicative —&amp;gt; Monad  直接上公式： 1(&amp;gt;&amp;gt;=) :: (Monad m) =&amp;gt; m a -&amp;gt; (a -&amp;gt; m b) -&amp;gt; m b 这个函数叫bind。 它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。 举个Maybe的例子 Maybe as Mona">
+<meta property="og:description" content="MonadsFunctor —-&amp;gt; Applicative —-&amp;gt; Monad  直接上公式： 1(&amp;gt;&amp;gt;=) :: (Monad m) =&amp;gt; m a -&amp;gt; (a -&amp;gt; m b) -&amp;gt; m b 这个函数叫bind。 它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。 举个Maybe的例子 Maybe as Mo">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2018-03-09T02:17:17.598Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Learn You a Haskell for Great Good 读书笔记 13">
-<meta name="twitter:description" content="MonadsFunctor —&amp;gt; Applicative —&amp;gt; Monad  直接上公式： 1(&amp;gt;&amp;gt;=) :: (Monad m) =&amp;gt; m a -&amp;gt; (a -&amp;gt; m b) -&amp;gt; m b 这个函数叫bind。 它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。 举个Maybe的例子 Maybe as Mona">
+<meta name="twitter:description" content="MonadsFunctor —-&amp;gt; Applicative —-&amp;gt; Monad  直接上公式： 1(&amp;gt;&amp;gt;=) :: (Monad m) =&amp;gt; m a -&amp;gt; (a -&amp;gt; m b) -&amp;gt; m b 这个函数叫bind。 它接受一个Monad 和 一个将参数包成Monad的函数，返回Monad，其中的值经过变换。 举个Maybe的例子 Maybe as Mo">
 
 
 
@@ -156,7 +156,7 @@
 
   <div style="display: none;">
     <script src="//s95.cnzz.com/z_stat.php?id=1273070403&web_id=1273070403" language="JavaScript"></script>
-  </div>
+  </div><!-- hexo-inject:begin --><!-- hexo-inject:end -->
 
 
 
@@ -171,7 +171,7 @@
     
   
 
-  <div class="container sidebar-position-left page-post-detail ">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -336,7 +336,7 @@
       
 
       
-        <h2 id="Monads"><a href="#Monads" class="headerlink" title="Monads"></a>Monads</h2><p><strong>Functor —&gt; Applicative —&gt; Monad</strong> </p>
+        <h2 id="Monads"><a href="#Monads" class="headerlink" title="Monads"></a>Monads</h2><p><strong>Functor —-&gt; Applicative —-&gt; Monad</strong> </p>
 <p>直接上公式：</p>
 <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(&gt;&gt;=) :: (<span class="type">Monad</span> m) =&gt; m a -&gt; (a -&gt; m b) -&gt; m b</span><br></pre></td></tr></table></figure>
 <p>这个函数叫<em>bind</em>。</p>
@@ -496,7 +496,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-count">9</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -509,7 +509,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">4</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -755,6 +755,28 @@
   
 
   
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
 
   
 
