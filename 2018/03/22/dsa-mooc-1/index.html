@@ -102,7 +102,7 @@
 <meta property="og:site_name" content="摸鱼日志">
 <meta property="og:description" content="最近在查漏补缺看看计算机学科最重要的课程之一，课程讲得很好。 课程地址算法时间复杂度 大$O$记号：算法的最差情况时间复杂度 大$Ω$记号：最好情况 大$Θ$记号：当算法最差情况与最好情况属同一复杂度时，则可用该记号。$Θ(n) = Ω(n) = O(n)$    常见时间复杂度：      名称 记号 分类     常数复杂度 $O(1)$ 高效解   对数复杂度 $O(log_{c}(n))">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-03-22T10:03:40.159Z">
+<meta property="og:updated_time" content="2018-03-24T05:27:32.925Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="数据结构MOOC笔记-序章">
 <meta name="twitter:description" content="最近在查漏补缺看看计算机学科最重要的课程之一，课程讲得很好。 课程地址算法时间复杂度 大$O$记号：算法的最差情况时间复杂度 大$Ω$记号：最好情况 大$Θ$记号：当算法最差情况与最好情况属同一复杂度时，则可用该记号。$Θ(n) = Ω(n) = O(n)$    常见时间复杂度：      名称 记号 分类     常数复杂度 $O(1)$ 高效解   对数复杂度 $O(log_{c}(n))">
@@ -389,8 +389,8 @@
 <p>幂方级数：$1^d + 2^d +\cdots + n^d = O(n^{d+1})$</p>
 <p>几何级数：$a^0 + a^1 + a^2 + \cdots + a^n = \frac{a^{n+1} + 1}{a - 1} = O(2^n)$</p>
 <p>收敛级数：$O(1)$</p>
-<p>*调和级数：$1 + \frac{1}{2} +  \frac{1}{3} + \cdots +  \frac{1}{n} \approx ln(n) = O(logn)$</p>
-<p>*对数级数：$log1 + log2 + \cdots + logn = log(n!) \leq log(n^n)  = O(nlogn)$</p>
+<p>*调和级数：$1 + \frac{1}{2} +  \frac{1}{3} + \cdots +  \frac{1}{n} \approx ln(n) + γ = O(logn)$</p>
+<p>*对数级数：$log1 + log2 + \cdots + logn = log(n!) \leq log(n^n)  = O(nlogn)​$</p>
 </li>
 </ul>
 <ul>
@@ -401,7 +401,7 @@
 <li>递归基（base case of recursion）：递归终止条件与值，如 $fibonacci(0) = 0, fibonacci(1) = 1$。</li>
 </ul>
 <ul>
-<li>线性递归（Linear recusion）：减而治之，每次处理最小单位，并<strong>只自调一次</strong>，与尾递归区别于最后一步不是递归操作。</li>
+<li>线性递归（Linear recursion）：减而治之，每深入一层，待求解问题的规模都缩减一个常数，并<strong>只自调一次</strong>，与分而治之区别于每个递归实例上层仅有一个实例，与尾递归区别于最后一步不是递归操作。</li>
 </ul>
 <ul>
 <li><p>ADT：Abstract Data Type 抽象数据类型，就是数据类型的接口文档</p>
@@ -468,6 +468,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/18/springboot-tomcat-qa1/" rel="prev" title="SpringBoot 配置内置Tomcat 解决 RFC 7230 与 RFC 3986 请求字符限制问题">
+                SpringBoot 配置内置Tomcat 解决 RFC 7230 与 RFC 3986 请求字符限制问题 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -544,7 +548,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-count">10</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -557,7 +561,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">8</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
