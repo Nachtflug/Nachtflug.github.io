@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spring,java,springMVC," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引出写控制层的时候，我们发现对于一类方法，经常要将一些参数从Session解析，然后固定装入某个pojo中。比如不论创建什么记录，都要将当前用户作为创建人写入相应DO的字段，而这些字段名往往都是一样的。这样势必会有重复编码，那有没有可以偷懒的办法呢？ 参数解析器springmvc提供了HandlerMethodArgumentResolver接口作为定义参数解析策略的入口： 12345678910">
+<meta name="keywords" content="spring,java,springMVC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringMVC 参数解析 ArgumentResolver">
+<meta property="og:url" content="http://yoursite.com/2018/11/08/springMVC-argument-resolver/index.html">
+<meta property="og:site_name" content="摸鱼日志">
+<meta property="og:description" content="引出写控制层的时候，我们发现对于一类方法，经常要将一些参数从Session解析，然后固定装入某个pojo中。比如不论创建什么记录，都要将当前用户作为创建人写入相应DO的字段，而这些字段名往往都是一样的。这样势必会有重复编码，那有没有可以偷懒的办法呢？ 参数解析器springmvc提供了HandlerMethodArgumentResolver接口作为定义参数解析策略的入口： 12345678910">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-11-23T11:30:21.631Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SpringMVC 参数解析 ArgumentResolver">
+<meta name="twitter:description" content="引出写控制层的时候，我们发现对于一类方法，经常要将一些参数从Session解析，然后固定装入某个pojo中。比如不论创建什么记录，都要将当前用户作为创建人写入相应DO的字段，而这些字段名往往都是一样的。这样势必会有重复编码，那有没有可以偷懒的办法呢？ 参数解析器springmvc提供了HandlerMethodArgumentResolver接口作为定义参数解析策略的入口： 12345678910">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/08/springMVC-argument-resolver/"/>
+
+
+
+
+
+  <title>SpringMVC 参数解析 ArgumentResolver | 摸鱼日志</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1273070403&web_id=1273070403" language="JavaScript"></script>
+  </div><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">摸鱼日志</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/08/springMVC-argument-resolver/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="<a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摸鱼日志">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">SpringMVC 参数解析 ArgumentResolver</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-08T20:35:29+08:00">
+                2018-11-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="引出"><a href="#引出" class="headerlink" title="引出"></a>引出</h4><p>写控制层的时候，我们发现对于一类方法，经常要将一些参数从Session解析，然后固定装入某个pojo中。比如不论创建什么记录，都要将当前用户作为创建人写入相应DO的字段，而这些字段名往往都是一样的。这样势必会有重复编码，那有没有可以偷懒的办法呢？</p>
+<h4 id="参数解析器"><a href="#参数解析器" class="headerlink" title="参数解析器"></a>参数解析器</h4><p>springmvc提供了<code>HandlerMethodArgumentResolver</code>接口作为定义参数解析策略的入口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HandlerMethodArgumentResolver</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 该解析器能解析哪些参数</span></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">supportsParameter</span><span class="params">(MethodParameter parameter)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 参数解析的具体实现</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> parameter 参数信息</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> mavContainer mav容器</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> webRequest 当前请求</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> binderFactory WebDataBinder 工厂</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function">Object <span class="title">resolveArgument</span><span class="params">(MethodParameter parameter, ModelAndViewContainer mavContainer,</span></span></span><br><span class="line"><span class="function"><span class="params">			NativeWebRequest webRequest, WebDataBinderFactory binderFactory)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于上述问题，一般而言，可以在控制层方法入参多写一个SessionBean类的参数，然后写一个参数解析器，将Session中的数据装载进去。最后在方法体中进行Bean之间的属性拷贝即可。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SessionBeanArgumentResolver</span> <span class="keyword">implements</span> <span class="title">HandlerMethodArgumentResolver</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">supportsParameter</span><span class="params">(MethodParameter methodParameter)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> methodParameter.getParameterType().equals(SessionBean.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">resolveArgument</span><span class="params">(MethodParameter methodParameter,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  ModelAndViewContainer modelAndViewContainer,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  NativeWebRequest nativeWebRequest,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  WebDataBinderFactory webDataBinderFactory)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> BaseReqPojoBuilder.build(nativeWebRequest.getNativeRequest(HttpServletRequest.class),</span><br><span class="line">                MethodType.getMethodType(methodParameter.getMethod().getName()));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span>(<span class="string">"/foo"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> ResultDTO <span class="title">foo</span><span class="params">(FooQuery query, SessionBean session)</span> </span>&#123;</span><br><span class="line">   	BeanUtils.copyProperties(session, query);</span><br><span class="line">  ... ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不要忘记注册该参数解析器，单纯<code>@Component</code>注解是无用的。注册方法多种多样，列一个java注解式的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Config</span> <span class="keyword">extends</span> <span class="title">WebMvcConfigurationSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	... ...</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">addArgumentResolvers</span><span class="params">(List&lt;HandlerMethodArgumentResolver&gt; argumentResolvers)</span> </span>&#123;</span><br><span class="line">        argumentResolvers.add(<span class="keyword">new</span> SessionBeanArgumentResolver()); <span class="comment">//要在默认解析器之前注册</span></span><br><span class="line">        <span class="keyword">super</span>.addArgumentResolvers(argumentResolvers);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>至此已经省事不少，但看到每个方法体中重复的<code>copyProperties</code>，强迫症又犯。</p>
+<p>略加探索，确实还有更隐蔽的做法。</p>
+<h4 id="ModelAttribute-参数解析器"><a href="#ModelAttribute-参数解析器" class="headerlink" title="@ModelAttribute 参数解析器"></a>@ModelAttribute 参数解析器</h4><p>我们想直接对原有的比如<code>FooQuery</code>类型解析动刀，那就要清楚，spring默认的参数解析器里，哪个是干组装POJO类型的活的。</p>
+<p>你或许想到对于每个Controller，可以定义<code>@InitBinder</code>标识的方法，在方法里注册自定义的<code>PropertyEditor</code>，似乎可以实现这个需求：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@InitBinder</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initBinder</span><span class="params">(WebDataBinder binder)</span></span>&#123;</span><br><span class="line">    binder.registerCustomEditor(String.class, <span class="keyword">new</span> XssStripStringEditor());</span><br><span class="line">  ... ...</span><br><span class="line">    <span class="comment">// ??</span></span><br><span class="line">    binder.registerCustomEditor(SessionBean.class, <span class="keyword">new</span> SessionBeanEditor());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但你会发现，到binder这一层范围太窄，PropertyEditor完成的是<code>String</code>到特定类型数据的转换，WebDataBinder完成的是表单到JavaBean<strong>属性</strong>的绑定，如果前端传来的是bean的json字串，或许还可以一用。</p>
+<p>我们需要的是更上一层的定制化参数解析。这就引出了<code>ServletModelAttributeMethodProcessor</code>。</p>
+<p>该类命名为<code>Processor</code>而不是<code>ArgumentResolver</code>是因为其继承<code>ModelAttributeMethodProcessor</code>, 该类又同时实现了<code>HandlerMethodArgumentResolver, HandlerMethodReturnValueHandler</code>两个接口。我们只关注参数解析那一部分。</p>
+<ol>
+<li>先看其支持的类型：</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">supportsParameter</span><span class="params">(MethodParameter parameter)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> (parameter.hasParameterAnnotation(ModelAttribute.class) ||</span><br><span class="line">			(<span class="keyword">this</span>.annotationNotRequired &amp;&amp; !BeanUtils.isSimpleProperty(parameter.getParameterType())));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其支持<code>@ModelAttribute</code>标注的入参（这一点基本上没人用），以及默认条件下（annotationNotRequired默认设置为true）的非’简单’参数。</p>
+<p>何为简单参数？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isSimpleProperty</span><span class="params">(Class&lt;?&gt; clazz)</span> </span>&#123;</span><br><span class="line">	Assert.notNull(clazz, <span class="string">"Class must not be null"</span>);</span><br><span class="line">	<span class="keyword">return</span> isSimpleValueType(clazz) || (clazz.isArray() &amp;&amp; isSimpleValueType(clazz.getComponentType()));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isSimpleValueType</span><span class="params">(Class&lt;?&gt; clazz)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> (ClassUtils.isPrimitiveOrWrapper(clazz) ||</span><br><span class="line">			Enum.class.isAssignableFrom(clazz) ||</span><br><span class="line">			CharSequence.class.isAssignableFrom(clazz) ||</span><br><span class="line">			Number.class.isAssignableFrom(clazz) ||</span><br><span class="line">			Date.class.isAssignableFrom(clazz) ||</span><br><span class="line">			URI.class == clazz || URL.class == clazz ||</span><br><span class="line">			Locale.class == clazz || Class.class == clazz);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>总结来说：基本类型及其包装类、枚举、字串、日期、URI、URL、Local、Class类型和上述类型的数组。</p>
+<p>不是上述类型都会归该解析器管。自然，自定义的pojo也是。</p>
+<ol>
+<li>解析参数的过程</li>
+</ol>
+<p>简单而言分为两部：创建对象，属性绑定。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 不可重写</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Object <span class="title">resolveArgument</span><span class="params">(MethodParameter parameter, ModelAndViewContainer mavContainer,</span></span></span><br><span class="line"><span class="function"><span class="params">		NativeWebRequest webRequest, WebDataBinderFactory binderFactory)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">	String name = ModelFactory.getNameForParameter(parameter);</span><br><span class="line">	ModelAttribute ann = parameter.getParameterAnnotation(ModelAttribute.class);</span><br><span class="line">	<span class="keyword">if</span> (ann != <span class="keyword">null</span>) &#123;</span><br><span class="line">		mavContainer.setBinding(name, ann.binding());</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 创建对象</span></span><br><span class="line">	Object attribute = (mavContainer.containsAttribute(name) ? mavContainer.getModel().get(name) :</span><br><span class="line">			createAttribute(name, parameter, binderFactory, webRequest));</span><br><span class="line">	<span class="comment">// 参数绑定</span></span><br><span class="line">	WebDataBinder binder = binderFactory.createBinder(webRequest, attribute, name);</span><br><span class="line">	<span class="keyword">if</span> (binder.getTarget() != <span class="keyword">null</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!mavContainer.isBindingDisabled(name)) &#123;</span><br><span class="line">			bindRequestParameters(binder, webRequest);</span><br><span class="line">		&#125;</span><br><span class="line">		validateIfApplicable(binder, parameter);</span><br><span class="line">		<span class="keyword">if</span> (binder.getBindingResult().hasErrors() &amp;&amp; isBindExceptionRequired(binder, parameter)) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> BindException(binder.getBindingResult());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Add resolved attribute and BindingResult at the end of the model</span></span><br><span class="line">	Map&lt;String, Object&gt; bindingResultModel = binder.getBindingResult().getModel();</span><br><span class="line">	mavContainer.removeAttributes(bindingResultModel);</span><br><span class="line">	mavContainer.addAllAttributes(bindingResultModel);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> binder.convertIfNecessary(binder.getTarget(), parameter.getParameterType(), parameter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>该方法为final，不可扩展。</p>
+<ol>
+<li><p>1创建对象</p>
+<p>其父类直接用默认无参构造器构造一个对象，该方法可继承扩展，到了<code>ServletModelAttributeMethodProcessor</code>，会先判断是否有同名参数，若有，试图用ConversionService转化成bean，若无，就用父类的方法。</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 不可重写</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> Object <span class="title">createAttribute</span><span class="params">(String attributeName, MethodParameter parameter,</span></span></span><br><span class="line"><span class="function"><span class="params">		WebDataBinderFactory binderFactory, NativeWebRequest request)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">	<span class="comment">// 从请求中拿取同名参数的值</span></span><br><span class="line">	String value = getRequestValueForAttribute(attributeName, request);</span><br><span class="line">	<span class="keyword">if</span> (value != <span class="keyword">null</span>) &#123;</span><br><span class="line">         	<span class="comment">// 不为空则试图用此值创建对象</span></span><br><span class="line">		Object attribute = createAttributeFromRequestValue(</span><br><span class="line">				value, attributeName, parameter, binderFactory, request);</span><br><span class="line">		<span class="keyword">if</span> (attribute != <span class="keyword">null</span>) &#123;</span><br><span class="line">			<span class="keyword">return</span> attribute;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 尝试失败就用父类创建方式，即默认无参构造方法</span></span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">super</span>.createAttribute(attributeName, parameter, binderFactory, request);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建方法</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">createAttributeFromRequestValue</span><span class="params">(String sourceValue, String attributeName,</span></span></span><br><span class="line"><span class="function"><span class="params">		MethodParameter parameter, WebDataBinderFactory binderFactory, NativeWebRequest request)</span></span></span><br><span class="line"><span class="function">		<span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">	DataBinder binder = binderFactory.createBinder(request, <span class="keyword">null</span>, attributeName);</span><br><span class="line">     	<span class="comment">// 使用ConversionService</span></span><br><span class="line">	ConversionService conversionService = binder.getConversionService();</span><br><span class="line">	<span class="keyword">if</span> (conversionService != <span class="keyword">null</span>) &#123;</span><br><span class="line">         	<span class="comment">// 将String</span></span><br><span class="line">		TypeDescriptor source = TypeDescriptor.valueOf(String.class);</span><br><span class="line">         	<span class="comment">// 转成对象</span></span><br><span class="line">		TypeDescriptor target = <span class="keyword">new</span> TypeDescriptor(parameter);</span><br><span class="line">		<span class="keyword">if</span> (conversionService.canConvert(source, target)) &#123;</span><br><span class="line">			<span class="keyword">return</span> binder.convertIfNecessary(sourceValue, parameter.getParameterType(), parameter);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有趣的是，这里用<code>DataBinder</code>的<code>ConversionService</code>，前面不是有<code>PropertyEditor</code>了吗，感觉干的是类似的事情。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一个DataBinder同时实现了属性编辑器注册(propertyEditorRegitry) 和 类型转换器</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DataBinder</span> <span class="keyword">implements</span> <span class="title">PropertyEditorRegistry</span>, <span class="title">TypeConverter</span> </span>&#123;</span><br><span class="line">  ... ...</span><br></pre></td></tr></table></figure>
+<p>仔细翻看源码，粗略理解：</p>
+<p>a. <code>DataBinder</code>实现<code>TypeConverter</code>和<code>PropertyEditorRegistry</code>的方式，是代理了<code>SimpleTypeConverter</code>。</p>
+<p>b. <code>SimpleTypeConverter</code>的父类<code>PropertyEditorRegistrySupport</code>实现了属性编辑器注册。</p>
+<p>c. <code>PropertyEditorRegistrySupport</code>内含 <code>ConversionService</code>与一系列<code>PropertyEditor</code>(默认和自定义)。</p>
+<p>d. <code>converter</code>是spring自定义的一套数据转换逻辑，关于<code>Converter</code> 和 <code>PropertiyEditor</code>的区别可以参考博文<a href="https://blog.csdn.net/pentiumchen/article/details/44066173" target="_blank" rel="noopener">https://blog.csdn.net/pentiumchen/article/details/44066173</a></p>
+<p>2.2 参数绑定</p>
+<p>直接用binder，不过与其父类不同，<code>ServletModelAttributeMethodProcessor</code>使用的是<code>ServletRequestDataBinder</code>。</p>
+<ol>
+<li>问题实现</li>
+</ol>
+<p>回到问题上，既然这些属性都是公共的，那就定义一个基类（或接口）作为父类，抽出公共部分的字段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SessionBase</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String createMan;</span><br><span class="line">  <span class="keyword">private</span> Long createManId;</span><br><span class="line">  ... ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后继承扩展Processor：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SessionBaseBeanArgumentResolver</span> <span class="keyword">extends</span> <span class="title">ModelAttributeMethodProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BaseDOArgumentResolver</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="keyword">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">supportsParameter</span><span class="params">(MethodParameter parameter)</span> </span>&#123;</span><br><span class="line">        Class&lt;?&gt; type = parameter.getParameterType();</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.supportsParameter(parameter) &amp;&amp;</span><br><span class="line">                (type == SessionBase.class || SessionBase.class.isAssignableFrom(type));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 生成一个已经注入session信息的SessionBase bean</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> attributeName</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> parameter</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> binderFactory</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> webRequest</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Object <span class="title">createAttribute</span><span class="params">(String attributeName, MethodParameter parameter,</span></span></span><br><span class="line"><span class="function"><span class="params">                                     WebDataBinderFactory binderFactory, NativeWebRequest webRequest)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        String methodName = parameter.getMethod().getName();</span><br><span class="line">        SessionBase plain = (SessionBase) <span class="keyword">super</span>.createAttribute(attributeName, parameter, binderFactory, webRequest);</span><br><span class="line">        MethodType type = MethodType.parseMethodType(methodName);</span><br><span class="line">        HttpServletRequest httpServletRequest = (HttpServletRequest) webRequest.getNativeRequest();</span><br><span class="line">        String token = httpServletRequest.getParameter(LoginConstants.SESSION_KEY);</span><br><span class="line">        LoginSessionBean sessionBean = getSession(token);</span><br><span class="line">        doAssembleDoBase(plain, type, sessionBean);</span><br><span class="line">        <span class="keyword">return</span> plain;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 实际上用的是 ExtendedServletRequestDataBinder，而源码默认强转为 WebRequestDataBinder</span></span><br><span class="line"><span class="comment">     * 两者同祖但无父子关系，故会报错，所以这里要重写这个方法。</span></span><br><span class="line"><span class="comment">     * RequestMappingHandlerAdapter -&gt; ServletRequestDataBinderFactory -&gt; ExtendedServletRequestDataBinder</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> binder</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> request</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">bindRequestParameters</span><span class="params">(WebDataBinder binder, NativeWebRequest request)</span> </span>&#123;</span><br><span class="line">        ServletRequest servletRequest = request.getNativeRequest(ServletRequest.class);</span><br><span class="line">        ServletRequestDataBinder servletBinder = (ServletRequestDataBinder) binder;</span><br><span class="line">        servletBinder.bind(servletRequest);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doAssembleSessionBase</span><span class="params">(SessionBase plain, MethodType type, LoginSessionBean loginService)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        plain.setIsDeleted(EnumSysConstant.IsDeletedFlag.NO.getFlag());</span><br><span class="line">        <span class="keyword">if</span> (type <span class="keyword">instanceof</span> MethodType.CREATE) &#123;</span><br><span class="line">            plain.setCreateOperatorId(Long.valueOf(loginService.getOperatorid()));</span><br><span class="line">            plain.setCreateOperatorName(loginService.getOperator());</span><br><span class="line">            plain.setGmtCreate(<span class="keyword">new</span> Date());</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (type <span class="keyword">instanceof</span> MethodType.UPDATE) &#123;</span><br><span class="line">            plain.setUpdateOperatorId(Long.valueOf(loginService.getOperatorid()));</span><br><span class="line">            plain.setUpdateOperatorName(loginService.getOperator());</span><br><span class="line">            plain.setGmtModified(<span class="keyword">new</span> Date());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (plain <span class="keyword">instanceof</span> LoginIdentified) &#123;</span><br><span class="line">            ((LoginIdentified) plain).setPartyId(Long.valueOf(loginService.getPartyid()));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为 <code>ServletModelAttributeMethodProcessor</code>难于扩展，故使用其父类。</p>
+<p>这样便实现了要求。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/springMVC/" rel="tag"># springMVC</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/18/springboot-tomcat-qa1/" rel="next" title="SpringBoot 配置内置Tomcat 解决 RFC 7230 与 RFC 3986 请求字符限制问题">
+                <i class="fa fa-chevron-left"></i> SpringBoot 配置内置Tomcat 解决 RFC 7230 与 RFC 3986 请求字符限制问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="<a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a>" />
+          <p class="site-author-name" itemprop="name"><a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://www.codewars.com/users/Nachtflug" target="_blank" title="<img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>">
+                  
+                    
+                      <img style='display:inline;vertical-align:middle' src='https://www.codewars.com/users/Nachtflug/badges/micro'/>
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情(qian)链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.51cloud.win" title="Hill's Notes" target="_blank">Hill's Notes</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#引出"><span class="nav-number">1.</span> <span class="nav-text">引出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参数解析器"><span class="nav-number">2.</span> <span class="nav-text">参数解析器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ModelAttribute-参数解析器"><span class="nav-number">3.</span> <span class="nav-text">@ModelAttribute 参数解析器</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"><a id='upName' href='mailto:200714916@qq.com'>Nachtflug</a></span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>
